@@ -2,24 +2,11 @@
 
 import { useTenant, useTenantBranding } from "@/lib/context/tenant-context";
 import { useState } from "react";
-import Link from 'next/link';
 
 export default function Home() {
   const { tenant, isLoading, error } = useTenant();
   const { primaryColor, secondaryColor, logo } = useTenantBranding();
   const [searchQuery, setSearchQuery] = useState("");
-  
-  const handleSearch = () => {
-    if (searchQuery.trim()) {
-      window.location.href = `/search?organizationName=${encodeURIComponent(searchQuery.trim())}`;
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSearch();
-    }
-  };
 
   if (isLoading) {
     return (
@@ -59,10 +46,10 @@ export default function Home() {
               </div>
             </div>
             <nav className="flex space-x-8">
-              <Link href="/search" className="text-gray-600 hover:text-gray-900">Search</Link>
-              <Link href="/verify" className="text-gray-600 hover:text-gray-900">Verify</Link>
+              <a href="#" className="text-gray-600 hover:text-gray-900">Search</a>
+              <a href="#" className="text-gray-600 hover:text-gray-900">Verify</a>
               <a href="#" className="text-gray-600 hover:text-gray-900">About</a>
-              <Link href="/login" className="text-gray-600 hover:text-gray-900">Login</Link>
+              <a href="#" className="text-gray-600 hover:text-gray-900">Dashboard</a>
             </nav>
           </div>
         </div>
@@ -88,7 +75,6 @@ export default function Home() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyPress={handleKeyPress}
                 className="block w-full pr-20 border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-lg py-4 px-4"
                 placeholder="Search by company name, certificate number, or ISO standard..."
                 style={{ borderColor: primaryColor }}
@@ -96,7 +82,6 @@ export default function Home() {
               <div className="absolute inset-y-0 right-0 flex items-center">
                 <button
                   type="button"
-                  onClick={handleSearch}
                   className="inline-flex items-center px-6 py-2 border border-transparent text-base font-medium rounded-r-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2"
                   style={{ backgroundColor: primaryColor }}
                 >
@@ -108,7 +93,7 @@ export default function Home() {
 
           {/* Quick Actions */}
           <div className="mt-16 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            <Link href="/verify" className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow">
+            <div className="bg-white overflow-hidden shadow rounded-lg">
               <div className="p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
@@ -130,9 +115,9 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-            </Link>
+            </div>
 
-            <Link href="/search" className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow">
+            <div className="bg-white overflow-hidden shadow rounded-lg">
               <div className="p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
@@ -154,9 +139,9 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-            </Link>
+            </div>
 
-            <Link href="/login" className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow">
+            <div className="bg-white overflow-hidden shadow rounded-lg">
               <div className="p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
@@ -169,16 +154,16 @@ export default function Home() {
                   <div className="ml-5 w-0 flex-1">
                     <dl>
                       <dt className="text-sm font-medium text-gray-500 truncate">
-                        Certification Body
+                        Documentation
                       </dt>
                       <dd className="text-lg font-medium text-gray-900">
-                        Login to issue certificates
+                        API & Integration
                       </dd>
                     </dl>
                   </div>
                 </div>
               </div>
-            </Link>
+            </div>
           </div>
         </div>
 

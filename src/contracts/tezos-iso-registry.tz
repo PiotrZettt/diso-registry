@@ -1,0 +1,68 @@
+# Tezos Smart Contract for ISO Certificate Registry
+# This contract handles permanent certificate storage and critical operations
+
+storage (big_map string (pair (pair string string) (pair nat timestamp)));
+
+parameter
+  | IsssueCertificate of (pair string (pair (pair string string) (pair nat timestamp)))
+  | RevokeCertificate of string
+  | UpdateCertificationBody of (pair string bool)
+  | GetCertificate of string;
+
+code {
+  # Main contract logic
+  UNPAIR;
+  
+  # Match on parameter type
+  IF_LEFT {
+    # IssueCertificate
+    UNPAIR;
+    DUP 3;
+    SENDER;
+    
+    # Check if sender is authorized certification body
+    # TODO: Add authorization check
+    
+    # Store certificate
+    DUP 2;
+    GET;
+    IF_NONE {
+      # Certificate doesn't exist, create new
+      DUP 2;
+      DIG 2;
+      SOME;
+      UPDATE;
+      NIL operation;
+      PAIR;
+    } {
+      # Certificate exists, fail
+      FAIL;
+    }
+  } {
+    IF_LEFT {
+      # RevokeCertificate
+      DUP 2;
+      SENDER;
+      
+      # Check authorization and revoke
+      # TODO: Implement revocation logic
+      FAIL; # Placeholder
+    } {
+      IF_LEFT {
+        # UpdateCertificationBody
+        FAIL; # Placeholder - admin only
+      } {
+        # GetCertificate
+        DUP 2;
+        GET;
+        IF_NONE {
+          FAIL; # Certificate not found
+        } {
+          # Return certificate data
+          NIL operation;
+          PAIR;
+        }
+      }
+    }
+  }
+}

@@ -1,4 +1,6 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DeFi ISO Registry - Multitenant Architecture
+
+A comprehensive multitenant DeFi ISO Registry application built on Tezos and Etherlink blockchains, enabling multiple certification bodies to manage their ISO certifications with complete data isolation and custom branding.
 
 ## Getting Started
 
