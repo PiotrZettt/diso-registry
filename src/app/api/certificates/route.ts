@@ -3,6 +3,29 @@ import { NextRequest, NextResponse } from 'next/server';
 import { certificateService } from '@/services/certificate-service';
 import { getTenantFromRequest } from '@/lib/middleware/tenant-resolver';
 
+/**
+ * Recursively convert all Set objects to arrays for Next.js serialization
+ */
+function convertSetsToArrays(obj: any): any {
+  if (obj instanceof Set) {
+    return Array.from(obj);
+  }
+  
+  if (Array.isArray(obj)) {
+    return obj.map(item => convertSetsToArrays(item));
+  }
+  
+  if (obj && typeof obj === 'object') {
+    const converted: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      converted[key] = convertSetsToArrays(value);
+    }
+    return converted;
+  }
+  
+  return obj;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const tenant = await getTenantFromRequest(request);
@@ -12,20 +35,6 @@ export async function GET(request: NextRequest) {
       url: request.url
     });
     
-    if (!tenant) {
-      console.log('❌ No tenant found, falling back to test-tenant for debugging');
-      // Temporary fallback for debugging
-      const fallbackTenant = { id: 'test-tenant', name: 'Test Tenant' };
-      
-      const result = await certificateService.getCertificatesByTenant(fallbackTenant.id, 50);
-      console.log('📊 Found certificates with fallback tenant:', result.certificates.length);
-      
-      return NextResponse.json({
-        ...result,
-        debug: { usedFallbackTenant: true, tenantId: fallbackTenant.id }
-      });
-    }
-
     const { searchParams } = new URL(request.url);
     const certificateNumber = searchParams.get('certificateNumber');
     const organizationName = searchParams.get('organizationName');
@@ -34,16 +43,46 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50');
     const lastKey = searchParams.get('lastKey');
 
+    if (!tenant) {
+      console.log('❌ No tenant found, falling back to global tenant for debugging');
+      // Use global tenant to match my-certificates API
+      const fallbackTenant = { id: 'global', name: 'Global Tenant' };
+      
+      // Get specific certificate if requested
+      if (certificateNumber) {
+        console.log('🔍 Looking for certificate with fallback:', { certificateNumber, tenantId: fallbackTenant.id });
+        const certificate = await certificateService.getCertificate(fallbackTenant.id, certificateNumber);
+        console.log('📄 Certificate lookup result with fallback:', certificate ? 'found' : 'not found');
+        if (!certificate) {
+          return NextResponse.json(
+            { error: 'Certificate not found' },
+            { status: 404 }
+          );
+        }
+        return NextResponse.json({ certificate: convertSetsToArrays(certificate) });
+      }
+      
+      const result = await certificateService.getCertificatesByTenant(fallbackTenant.id, 50);
+      console.log('📊 Found certificates with fallback tenant:', result.certificates.length);
+      
+      return NextResponse.json(convertSetsToArrays({
+        ...result,
+        debug: { usedFallbackTenant: true, tenantId: fallbackTenant.id }
+      }));
+    }
+
     // Get specific certificate
     if (certificateNumber) {
+      console.log('🔍 Looking for certificate:', { certificateNumber, tenantId: tenant.id });
       const certificate = await certificateService.getCertificate(tenant.id, certificateNumber);
+      console.log('📄 Certificate lookup result:', certificate ? 'found' : 'not found');
       if (!certificate) {
         return NextResponse.json(
           { error: 'Certificate not found' },
           { status: 404 }
         );
       }
-      return NextResponse.json({ certificate });
+      return NextResponse.json({ certificate: convertSetsToArrays(certificate) });
     }
 
     // Search certificates
@@ -54,12 +93,12 @@ export async function GET(request: NextRequest) {
       if (status) query.status = status as any;
 
       const certificates = await certificateService.searchCertificates(tenant.id, query, limit);
-      return NextResponse.json({ certificates });
+      return NextResponse.json({ certificates: convertSetsToArrays(certificates) });
     }
 
     // Get all certificates for tenant
     const result = await certificateService.getCertificatesByTenant(tenant.id, limit, lastKey || undefined);
-    return NextResponse.json(result);
+    return NextResponse.json(convertSetsToArrays(result));
 
   } catch (error) {
     console.error('Error fetching certificates:', error);
@@ -202,7 +241,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({
       message: 'Certificate status updated successfully',
-      certificate: updatedCertificate
+      certificate: convertSetsToArrays(updatedCertificate)
     });
 
   } catch (error) {

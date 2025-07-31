@@ -595,15 +595,41 @@ export class CertificateService {
    * Map DynamoDB item to certificate
    */
   private mapDynamoItemToCertificate(item: any): ISOCertificate {
+    // Convert all Set objects to arrays recursively to fix Next.js serialization
+    const sanitizedItem = this.convertSetsToArrays(item);
+    
     return {
-      ...item,
-      createdAt: new Date(item.createdAt),
-      updatedAt: new Date(item.updatedAt),
-      issuedDate: new Date(item.issuedDate),
-      expiryDate: new Date(item.expiryDate),
-      suspendedDate: item.suspendedDate ? new Date(item.suspendedDate) : undefined,
-      revokedDate: item.revokedDate ? new Date(item.revokedDate) : undefined,
+      ...sanitizedItem,
+      createdAt: new Date(sanitizedItem.createdAt),
+      updatedAt: new Date(sanitizedItem.updatedAt),
+      issuedDate: new Date(sanitizedItem.issuedDate),
+      expiryDate: new Date(sanitizedItem.expiryDate),
+      suspendedDate: sanitizedItem.suspendedDate ? new Date(sanitizedItem.suspendedDate) : undefined,
+      revokedDate: sanitizedItem.revokedDate ? new Date(sanitizedItem.revokedDate) : undefined,
     };
+  }
+
+  /**
+   * Recursively convert all Set objects to arrays for Next.js serialization
+   */
+  private convertSetsToArrays(obj: any): any {
+    if (obj instanceof Set) {
+      return Array.from(obj);
+    }
+    
+    if (Array.isArray(obj)) {
+      return obj.map(item => this.convertSetsToArrays(item));
+    }
+    
+    if (obj && typeof obj === 'object') {
+      const converted: any = {};
+      for (const [key, value] of Object.entries(obj)) {
+        converted[key] = this.convertSetsToArrays(value);
+      }
+      return converted;
+    }
+    
+    return obj;
   }
 
   /**

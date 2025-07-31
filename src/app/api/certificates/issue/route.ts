@@ -1,68 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { CertificateService } from '@/services/certificate-service';
 import { blockchainService } from '@/services/blockchain-service';
-import { getTenantFromRequest } from '@/lib/middleware/tenant-resolver';
 import { certificationBodyAuthService } from '@/services/certification-body-auth-service';
 
-/**
- * Helper function to extract and verify JWT from request
- */
-async function verifyAuthFromRequest(request: NextRequest) {
-  const authHeader = request.headers.get('authorization');
-  const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
-  
-  if (!token) {
-    return { success: false, user: null };
-  }
-
-  const user = await certificationBodyAuthService.verifyToken(token);
-  return { success: !!user, user };
-}
 
 /**
  * POST /api/certificates/issue - Issue a new certificate
  */
 export async function POST(request: NextRequest) {
   try {
-    // 1. Verify authentication (DISABLED FOR TESTING)
-    // const authResult = await verifyAuthFromRequest(request);
-    // if (!authResult.success || !authResult.user) {
-    //   return NextResponse.json(
-    //     { error: 'Unauthorized - only certification bodies can issue certificates' },
-    //     { status: 401 }
-    //   );
-    // }
+    // 1. Verify authentication - any logged in user can issue certificates
+    const token = request.cookies.get('auth-token')?.value;
+    if (!token) {
+      return NextResponse.json(
+        { error: 'Unauthorized - please log in to issue certificates' },
+        { status: 401 }
+      );
+    }
 
-    // Mock user for testing
-    const authResult = {
-      success: true,
-      user: {
-        id: 'test-user-id',
-        name: 'Test User',
-        email: 'test@example.com',
-        accreditationNumber: 'TCB-001',
-        certificationBody: {
-          name: 'Test Certification Body',
-          code: 'TCB',
-        },
-        tenantId: 'test-tenant',
-      },
-    };
-
-    // 2. Get tenant context (MOCKED FOR TESTING)
-    // const tenant = await getTenantFromRequest(request);
-    // if (!tenant) {
-    //   return NextResponse.json(
-    //     { error: 'Tenant context required' },
-    //     { status: 400 }
-    //   );
-    // }
-
-    // Mock tenant for testing
-    const tenant = {
-      id: 'test-tenant',
-      name: 'Test Tenant',
-    };
+    const user = await certificationBodyAuthService.verifyToken(token);
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Unauthorized - invalid or expired token' },
+        { status: 401 }
+      );
+    }
 
     // 3. Parse and validate request body
     const body = await request.json();
@@ -117,8 +79,10 @@ export async function POST(request: NextRequest) {
       issuedDate: new Date(),
       expiryDate: expiry,
       // Add required fields for ISOCertificate type
-      issuerName: authResult.user.name,
-      issuerCode: authResult.user.accreditationNumber || '',
+      issuerName: `${user.firstName} ${user.lastName}`,
+      issuerCode: user.id, // Use user ID as issuer code
+      certificationBodyId: user.id, // Link to certification body
+      issuedByUserId: user.id, // Track which user issued this
       auditInfo: {
         auditDate: new Date(),
         auditorName: auditor?.name || 'Not specified',
@@ -130,30 +94,27 @@ export async function POST(request: NextRequest) {
         etherlinkHash: undefined,
         ipfsHash: undefined,
       },
-      certificationBodyContact: certificationBodyContact || authResult.user.email,
+      certificationBodyContact: certificationBodyContact || user.email,
       documents,
-      metadata,
+      metadata: {
+        ...metadata,
+        createdBy: user.id,
+        lastUpdatedBy: user.id,
+      },
     };
 
-    console.log('🚀 Creating certificate with tenant ID:', tenant.id);
+    console.log('🚀 Creating certificate for user:', user.email);
     console.log('📋 Certificate data preview:', {
       organizationName: certificateData.organization.name,
       certificateNumber: 'will-be-generated',
-      publiclySearchable: certificateData.metadata.publiclySearchable
+      issuedBy: certificateData.issuerName
     });
     
+    // For now, use a fallback tenant ID since we're removing multi-tenancy
     const certificate = await certificateService.createCertificate(
-      tenant.id,
+      'global', // Use 'global' as the single tenant ID
       certificateData
     );
-    
-    console.log('✅ Certificate created successfully:', {
-      id: certificate.id,
-      certificateNumber: certificate.certificateNumber,
-      tenantId: certificate.tenantId,
-      publiclySearchable: certificate.metadata?.publiclySearchable,
-      blockchainHash: certificate.blockchain?.etherlinkHash
-    });
 
     // 5. Return success response
     return NextResponse.json({

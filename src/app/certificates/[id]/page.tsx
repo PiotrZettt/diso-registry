@@ -2,7 +2,7 @@
 
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 
 interface CertificateDetail {
   id: string;
@@ -20,15 +20,15 @@ interface CertificateDetail {
 
 interface BlockchainVerificationResult {
   verified: boolean;
-  tezosVerified: boolean;
   etherlinkVerified: boolean;
   onChainData?: any;
   message?: string;
 }
 
-export default function CertificateDetailPage({ params }: { params: { id: string } }) {
+export default function CertificateDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const resolvedParams = use(params);
   const [certificate, setCertificate] = useState<CertificateDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [blockchainVerification, setBlockchainVerification] = useState<BlockchainVerificationResult | null>(null);
@@ -48,8 +48,9 @@ export default function CertificateDetailPage({ params }: { params: { id: string
     setShowVerificationModal(true);
     
     try {
-      // Use the certificate ID directly as the certificate number for verification
-      const certificateNumber = certificate.id;
+      // Use the actual certificate number from the certificate data
+      const certificateNumber = certificate.id; // This is actually the certificate number based on how we mapped it
+      console.log('🔗 Blockchain verification using certificate number:', certificateNumber);
       
       const response = await fetch(`/api/public/certificates/verify/${encodeURIComponent(certificateNumber)}?type=certificate_number`);
       const data = await response.json();
@@ -60,7 +61,6 @@ export default function CertificateDetailPage({ params }: { params: { id: string
         // If certificate not found in database, try direct blockchain verification
         setBlockchainVerification({
           verified: false,
-          tezosVerified: false,
           etherlinkVerified: false,
           message: 'Certificate not found in public registry. This may be a private certificate.'
         });
@@ -69,7 +69,6 @@ export default function CertificateDetailPage({ params }: { params: { id: string
       console.error('Blockchain verification failed:', error);
       setBlockchainVerification({
         verified: false,
-        tezosVerified: false,
         etherlinkVerified: false,
         message: 'Blockchain verification service is currently unavailable.'
       });
@@ -79,32 +78,52 @@ export default function CertificateDetailPage({ params }: { params: { id: string
   };
 
   useEffect(() => {
-    // TODO: Fetch certificate details from API
-    // For now, showing mock data
-    setTimeout(() => {
-      const mockCertificate: CertificateDetail = {
-        id: params.id,
-        organizationName: params.id === 'TEST-BLOCKCHAIN-001' ? 'Test Organization Ltd' : 'Acme Corporation',
-        organizationEmail: params.id === 'TEST-BLOCKCHAIN-001' ? 'test@testorg.com' : 'quality@acme.com',
-        certificateType: 'ISO 9001',
-        status: 'active',
-        issuedDate: '2024-01-15',
-        expiryDate: '2027-01-15',
-        scope: params.id === 'TEST-BLOCKCHAIN-001' 
-          ? 'Design, manufacture and supply of test products'
-          : 'Design, development, and manufacture of quality management systems for industrial automation equipment.',
-        additionalInfo: params.id === 'TEST-BLOCKCHAIN-001' 
-          ? 'This is a test certificate for demonstrating blockchain verification.'
-          : 'Certificate includes surveillance audits scheduled annually.',
-        issuer: (user as any)?.certificationBody?.name || 'Test Certification Body',
-        blockchainHash: params.id === 'TEST-BLOCKCHAIN-001'
-          ? 'oo7Uuq1K6Z9e3x4B2h5Y8p1A9n6F3d2W5r7T9m4N8k3L'
-          : '0x1a2b3c4d5e6f7890abcdef1234567890fedcba0987654321',
-      };
-      setCertificate(mockCertificate);
-      setIsLoading(false);
-    }, 1000);
-  }, [params.id, user]);
+    const fetchCertificate = async () => {
+      if (!user) return;
+      
+      try {
+        setIsLoading(true);
+        
+        // Try to fetch by certificate number (assuming the ID in URL is the certificate number)
+        console.log('🔍 Fetching certificate with ID from URL:', resolvedParams.id);
+        const response = await fetch(`/api/certificates?certificateNumber=${encodeURIComponent(resolvedParams.id)}`, {
+          credentials: 'include',
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.certificate) {
+          // Map the API response to our interface
+          const cert = data.certificate;
+          const mappedCertificate: CertificateDetail = {
+            id: cert.certificateNumber || cert.id,
+            organizationName: cert.organization?.name || 'Unknown Organization',
+            organizationEmail: cert.organization?.email || 'N/A',
+            certificateType: cert.standard?.number || 'Unknown Standard',
+            status: cert.status || 'unknown',
+            issuedDate: cert.issuedDate,
+            expiryDate: cert.expiryDate,
+            scope: cert.scope?.description || cert.scope || 'No scope provided',
+            additionalInfo: cert.metadata?.additionalInfo || cert.additionalInfo || '',
+            issuer: cert.issuerName || (user as any)?.certificationBody?.name || 'Unknown Issuer',
+            blockchainHash: cert.blockchain?.etherlinkTransactionHash || cert.blockchain?.tezosTransactionHash || '',
+          };
+          setCertificate(mappedCertificate);
+        } else {
+          console.error('Certificate not found:', data.error);
+          // Set error state or show not found message
+          setCertificate(null);
+        }
+      } catch (error) {
+        console.error('Error fetching certificate:', error);
+        setCertificate(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCertificate();
+  }, [resolvedParams.id, user]);
 
   if (loading) {
     return (
@@ -355,28 +374,9 @@ export default function CertificateDetailPage({ params }: { params: { id: string
                       </span>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-4 text-sm mb-3">
+                    <div className="flex items-center justify-center text-sm mb-3">
                       <div className="flex items-center">
-                        <span className="text-gray-600 mr-2">Tezos:</span>
-                        {blockchainVerification.tezosVerified ? (
-                          <span className="text-green-600 flex items-center">
-                            <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                            Verified
-                          </span>
-                        ) : (
-                          <span className="text-red-600 flex items-center">
-                            <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                            Not Found
-                          </span>
-                        )}
-                      </div>
-                      
-                      <div className="flex items-center">
-                        <span className="text-gray-600 mr-2">Etherlink:</span>
+                        <span className="text-gray-600 mr-2">Etherlink Blockchain:</span>
                         {blockchainVerification.etherlinkVerified ? (
                           <span className="text-green-600 flex items-center">
                             <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">

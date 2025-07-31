@@ -217,6 +217,37 @@ export class AuthService {
   }
 
   /**
+   * Get authenticated user from request
+   */
+  async getAuthenticatedUser(request: any): Promise<TenantUser | null> {
+    try {
+      // Try to get token from Authorization header
+      const authHeader = request.headers.get('authorization');
+      let token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
+      
+      // If no Bearer token, try to get from cookies
+      if (!token) {
+        const cookies = request.headers.get('cookie');
+        if (cookies) {
+          const authCookie = cookies.split(';').find((c: string) => c.trim().startsWith('auth-token='));
+          if (authCookie) {
+            token = authCookie.split('=')[1];
+          }
+        }
+      }
+
+      if (!token) {
+        return null;
+      }
+
+      return await this.verifyToken(token);
+    } catch (error) {
+      console.error('Get authenticated user error:', error);
+      return null;
+    }
+  }
+
+  /**
    * Create invitation for new user
    */
   async createInvitation(
@@ -462,7 +493,7 @@ export class AuthService {
         email: user.email,
         role: user.role,
       },
-      JWT_SECRET,
+      JWT_SECRET as jwt.Secret,
       { expiresIn: JWT_EXPIRES_IN }
     );
   }
@@ -535,3 +566,8 @@ export class AuthService {
 }
 
 export const authService = new AuthService();
+
+// Export the getAuthenticatedUser function for convenience
+export async function getAuthenticatedUser(request: any): Promise<TenantUser | null> {
+  return authService.getAuthenticatedUser(request);
+}

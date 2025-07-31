@@ -1,6 +1,6 @@
-# DeFi ISO Registry - Multitenant Architecture
+# dISO Registry - Multitenant Architecture
 
-A comprehensive multitenant DeFi ISO Registry application built on Tezos and Etherlink blockchains, enabling multiple certification bodies to manage their ISO certifications with complete data isolation and custom branding.
+A comprehensive multitenant dISO Registry application built on Etherlink blockchain, enabling multiple certification bodies to manage their ISO certifications with complete data isolation and custom branding.
 
 ## Getting Started
 

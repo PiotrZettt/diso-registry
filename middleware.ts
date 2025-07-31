@@ -1,9 +1,9 @@
-// Next.js middleware for multitenant routing
+// Next.js middleware for basic routing
 import { NextRequest, NextResponse } from 'next/server';
-import { tenantMiddleware } from './src/lib/middleware/tenant-middleware';
 
 export async function middleware(request: NextRequest) {
-  return await tenantMiddleware(request);
+  // Simple middleware - no multi-tenant logic needed
+  return NextResponse.next();
 }
 
 export const config = {

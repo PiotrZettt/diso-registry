@@ -27,41 +27,51 @@ export default function CertificatesPage() {
   }, [user, loading, router]);
 
   useEffect(() => {
-    // TODO: Fetch certificates from API
-    // For now, showing mock data
-    setTimeout(() => {
-      setCertificates([
-        {
-          id: 'CERT-001',
-          organizationName: 'Acme Corporation',
-          certificateType: 'ISO 9001',
-          status: 'active',
-          issuedDate: '2024-01-15',
-          expiryDate: '2027-01-15',
-          scope: 'Design, development, and manufacture of quality management systems',
-        },
-        {
-          id: 'CERT-002',
-          organizationName: 'TechFlow Solutions',
-          certificateType: 'ISO 27001',
-          status: 'active',
-          issuedDate: '2024-02-10',
-          expiryDate: '2027-02-10',
-          scope: 'Information security management for software development services',
-        },
-        {
-          id: 'CERT-003',
-          organizationName: 'Green Energy Ltd',
-          certificateType: 'ISO 14001',
-          status: 'expired',
-          issuedDate: '2021-03-20',
-          expiryDate: '2024-03-20',
-          scope: 'Environmental management in renewable energy operations',
-        },
-      ]);
-      setIsLoading(false);
-    }, 1000);
-  }, []);
+    const fetchCertificates = async () => {
+      if (!user) return;
+      
+      try {
+        setIsLoading(true);
+        const response = await fetch('/api/certificates/my-certificates', {
+          credentials: 'include',
+        });
+        
+        const result = await response.json();
+        
+        if (result.success && result.data.certificates) {
+          // Map the API response to our interface
+          const mappedCertificates = result.data.certificates.map((cert: any) => {
+            console.log('📄 Certificate mapping:', { 
+              dbId: cert.id, 
+              certificateNumber: cert.certificateNumber,
+              usingForId: cert.certificateNumber || cert.id 
+            });
+            return {
+              id: cert.certificateNumber || cert.id, // Use certificateNumber for URL routing
+              organizationName: cert.organization?.name || 'Unknown Organization',
+              certificateType: cert.standard?.number || 'Unknown Standard',
+              status: cert.status || 'unknown',
+              issuedDate: cert.issuedDate,
+              expiryDate: cert.expiryDate,
+              scope: cert.scope?.description || cert.scope || 'No scope provided',
+            };
+          });
+          
+          setCertificates(mappedCertificates);
+        } else {
+          console.error('Failed to fetch certificates:', result.error);
+          setCertificates([]);
+        }
+      } catch (error) {
+        console.error('Error fetching certificates:', error);
+        setCertificates([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCertificates();
+  }, [user]);
 
   if (loading) {
     return (

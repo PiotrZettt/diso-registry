@@ -2,6 +2,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { certificationBodyAuthService } from '@/services/certification-body-auth-service';
 
+/**
+ * Recursively convert all Set objects to arrays for Next.js serialization
+ */
+function convertSetsToArrays(obj: any): any {
+  if (obj instanceof Set) {
+    return Array.from(obj);
+  }
+  
+  if (Array.isArray(obj)) {
+    return obj.map(item => convertSetsToArrays(item));
+  }
+  
+  if (obj && typeof obj === 'object') {
+    const converted: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      converted[key] = convertSetsToArrays(value);
+    }
+    return converted;
+  }
+  
+  return obj;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const token = request.cookies.get('auth-token')?.value;
@@ -33,14 +56,17 @@ export async function GET(request: NextRequest) {
       return response;
     }
 
+    // Sanitize user object to remove any Set objects
+    const sanitizedUser = convertSetsToArrays(user);
+
     return NextResponse.json({
       user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.contactPerson.firstName,
-        lastName: user.contactPerson.lastName,
+        id: sanitizedUser.id,
+        email: sanitizedUser.email,
+        firstName: sanitizedUser.contactPerson?.firstName,
+        lastName: sanitizedUser.contactPerson?.lastName,
         role: 'certification_body' as const,
-        status: user.status,
+        status: sanitizedUser.status,
         permissions: ['issue_certificates', 'view_certificates', 'manage_organization'],
         emailVerified: true,
         settings: {
@@ -53,15 +79,15 @@ export async function GET(request: NextRequest) {
           timezone: 'UTC',
         },
         profile: {
-          title: user.contactPerson.title,
-          phone: user.contactPerson.phone,
+          title: sanitizedUser.contactPerson?.title,
+          phone: sanitizedUser.contactPerson?.phone,
           department: 'Quality Management',
         },
-        lastLoginAt: user.lastLoginAt,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-        // Additional certification body specific data
-        certificationBody: user,
+        lastLoginAt: sanitizedUser.lastLoginAt,
+        createdAt: sanitizedUser.createdAt,
+        updatedAt: sanitizedUser.updatedAt,
+        // Additional certification body specific data (sanitized)
+        certificationBody: sanitizedUser,
       },
       authenticated: true,
     });

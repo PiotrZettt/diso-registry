@@ -235,7 +235,7 @@ export class PublicCertificateService {
       const blockchainResult = await blockchainService.verifyCertificate(certificate.id);
       blockchainVerification = {
         isValid: blockchainResult.isValid,
-        tezosVerified: blockchainResult.tezosVerified || false,
+        tezosVerified: false, // Tezos verification not implemented in current blockchain service
         etherlinkVerified: blockchainResult.etherlinkVerified || false,
         ...(blockchainResult.onChainData && { onChainData: blockchainResult.onChainData }),
       };
@@ -526,40 +526,69 @@ export class PublicCertificateService {
    * Map DynamoDB item to public certificate (filtered data)
    */
   private mapToPublicCertificate(item: any): PublicCertificate {
-    const expiryDate = new Date(item.expiryDate);
+    // Convert all Set objects to arrays recursively to fix Next.js serialization
+    const sanitizedItem = this.convertSetsToArrays(item);
+    
+    const expiryDate = new Date(sanitizedItem.expiryDate);
     const now = new Date();
     const daysUntilExpiry = Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 
     return {
-      id: item.id,
-      certificateNumber: item.certificateNumber,
-      issuerName: item.issuerName,
+      id: sanitizedItem.id,
+      certificateNumber: sanitizedItem.certificateNumber,
+      issuerName: sanitizedItem.issuerName,
       organization: {
-        name: item.organization.name,
-        country: item.organization.address?.country || 'Unknown',
-        city: item.organization.address?.city || 'Unknown',
+        name: sanitizedItem.organization.name,
+        country: sanitizedItem.organization.address?.country || 'Unknown',
+        city: sanitizedItem.organization.address?.city || 'Unknown',
       },
       standard: {
-        number: item.standard.number,
-        title: item.standard.title,
-        category: item.standard.category,
+        number: sanitizedItem.standard?.number || '',
+        title: sanitizedItem.standard?.title || '',
+        category: sanitizedItem.standard?.category || '',
       },
-      issuedDate: new Date(item.issuedDate),
+      issuedDate: new Date(sanitizedItem.issuedDate),
       expiryDate: expiryDate,
-      status: item.status,
+      status: sanitizedItem.status,
       scope: {
-        description: typeof item.scope === 'string' ? item.scope : item.scope?.description || '',
-        sites: item.scope?.sites?.map?.((site: any) => ({
-          name: site.name,
-          city: site.address?.city || 'Unknown',
-          country: site.address?.country || 'Unknown',
-        })) || [],
+        description: typeof sanitizedItem.scope === 'string' ? sanitizedItem.scope : sanitizedItem.scope?.description || '',
+        sites: Array.isArray(sanitizedItem.scope?.sites)
+          ? sanitizedItem.scope.sites.map((site: any) => ({
+              name: site.name,
+              city: site.address?.city || 'Unknown',
+              country: site.address?.country || 'Unknown',
+            }))
+          : [],
       },
-      verificationCode: item.metadata?.verificationCode || '',
+      verificationCode: sanitizedItem.metadata?.verificationCode || '',
       blockchain: {}, // Blockchain data read directly from blockchain, not database
       isExpired: daysUntilExpiry <= 0,
       daysUntilExpiry: Math.max(0, daysUntilExpiry),
     };
+  }
+
+  /**
+   * Recursively convert all Set objects to arrays for Next.js serialization
+   */
+  private convertSetsToArrays(obj: any): any {
+    if (obj instanceof Set) {
+      console.log('🔍 Found Set object, converting to array:', obj);
+      return Array.from(obj);
+    }
+    
+    if (Array.isArray(obj)) {
+      return obj.map(item => this.convertSetsToArrays(item));
+    }
+    
+    if (obj && typeof obj === 'object') {
+      const converted: any = {};
+      for (const [key, value] of Object.entries(obj)) {
+        converted[key] = this.convertSetsToArrays(value);
+      }
+      return converted;
+    }
+    
+    return obj;
   }
 }
 

@@ -1,5 +1,5 @@
 {
-  "name": "defiso",
+  "name": "diso-registry",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -15,6 +15,9 @@
     "@hookform/resolvers": "^5.1.1",
     "@pinata/sdk": "^2.1.0",
     "@prisma/client": "^6.11.1",
+    "@radix-ui/react-label": "^2.1.7",
+    "@radix-ui/react-select": "^2.2.5",
+    "@radix-ui/react-slot": "^1.2.3",
     "@taquito/beacon-wallet": "^22.0.0",
     "@taquito/michel-codec": "^22.0.0",
     "@taquito/signer": "^22.0.0",
@@ -22,11 +25,14 @@
     "@taquito/utils": "^22.0.0",
     "@tezos-domains/resolver": "^1.32.0",
     "bcryptjs": "^3.0.2",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "ethers": "^6.15.0",
     "ioredis": "^5.6.1",
     "iron-session": "^8.0.4",
     "jose": "^6.0.11",
     "jsonwebtoken": "^9.0.2",
+    "lucide-react": "^0.535.0",
     "next": "15.3.5",
     "next-auth": "^4.24.11",
     "next-themes": "^0.4.6",
@@ -36,6 +42,8 @@
     "react-hook-form": "^7.60.0",
     "sharp": "^0.34.3",
     "solc": "^0.8.30",
+    "tailwind-merge": "^3.3.1",
+    "tailwindcss-animate": "^1.0.7",
     "zod": "^4.0.2"
   },
   "devDependencies": {

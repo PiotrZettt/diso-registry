@@ -65,7 +65,9 @@ async function getTenantByDomain(request: NextRequest): Promise<Tenant | null> {
     'defiso.com',
     'www.defiso.com',
     'localhost:3000',
-    '127.0.0.1:3000'
+    'localhost:3001',
+    '127.0.0.1:3000',
+    '127.0.0.1:3001'
   ];
   
   if (mainDomains.includes(host)) {

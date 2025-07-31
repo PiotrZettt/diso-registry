@@ -1,8 +1,9 @@
-// ISO Certificate type definitions with tenant context
+// ISO Certificate type definitions for dISO Registry
 
 export interface ISOCertificate {
   id: string;
-  tenantId: string; // Tenant isolation
+  certificationBodyId: string; // Which certification body issued this certificate
+  issuedByUserId: string; // Which user from the certification body issued it
   
   // Certificate identification
   certificateNumber: string;
@@ -72,8 +73,8 @@ export interface ISOCertificate {
   
   // Metadata
   metadata: {
-    createdBy: string;
-    lastUpdatedBy: string;
+    createdBy: string; // User ID who created this certificate
+    lastUpdatedBy: string; // User ID who last updated
     publiclySearchable: boolean;
     verificationCode: string; // For public verification
     tags: string[];
@@ -118,7 +119,8 @@ export type ISOCategory =
   | 'other';
 
 export interface CertificateSearchQuery {
-  tenantId?: string; // For tenant-specific searches
+  certificationBodyId?: string; // For certification body-specific searches
+  issuedByUserId?: string; // For user-specific searches
   organizationName?: string;
   certificateNumber?: string;
   standard?: string;
@@ -157,7 +159,7 @@ export interface CertificateValidationResult {
 // Bulk operations for certification bodies
 export interface BulkCertificateOperation {
   id: string;
-  tenantId: string;
+  certificationBodyId: string;
   operationType: 'create' | 'update' | 'suspend' | 'revoke';
   certificates: Partial<ISOCertificate>[];
   status: 'pending' | 'processing' | 'completed' | 'failed';

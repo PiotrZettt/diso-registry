@@ -229,6 +229,17 @@ export class DynamoDBTenantService {
       role: data.role as any,
       status: (data.status as any) || 'pending',
       permissions: data.permissions || [],
+      emailVerified: false,
+      settings: {
+        notifications: {
+          email: true,
+          certificateExpiry: true,
+          auditReminders: true,
+        },
+        language: 'en',
+        timezone: 'UTC',
+      },
+      profile: {},
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -343,6 +354,72 @@ export class DynamoDBTenantService {
       : null;
   }
   
+  /**
+   * Get certificates issued by a specific user
+   */
+  async getCertificatesByIssuedUser(params: {
+    tenantId: string;
+    issuedByUserId: string;
+    status?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<{
+    certificates: ISOCertificate[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
+    const { tenantId, issuedByUserId, status, page = 1, limit = 10 } = params;
+    
+    try {
+      // Use Scan operation to find certificates by issuedByUserId
+      // This is less efficient than Query but works for filtering by user
+      let filterExpression = 'tenantId = :tenantId AND issuedByUserId = :issuedByUserId';
+      const expressionAttributeValues: Record<string, any> = {
+        ':tenantId': tenantId,
+        ':issuedByUserId': issuedByUserId,
+      };
+      
+      const expressionAttributeNames: Record<string, string> = {};
+      
+      if (status) {
+        filterExpression += ' AND #status = :status';
+        expressionAttributeValues[':status'] = status;
+        expressionAttributeNames['#status'] = 'status';
+      }
+      
+      const result = await docClient.send(new DocScanCommand({
+        TableName: TABLES.CERTIFICATES,
+        FilterExpression: filterExpression,
+        ExpressionAttributeValues: expressionAttributeValues,
+        ExpressionAttributeNames: Object.keys(expressionAttributeNames).length > 0 ? expressionAttributeNames : undefined,
+        Limit: limit * 3, // Scan more items since we're filtering
+      }));
+      
+      const certificates = result.Items?.map(this.mapCertificateFromDynamoDB) || [];
+      
+      // Apply pagination manually since we're using Scan
+      const startIndex = (page - 1) * limit;
+      const paginatedCertificates = certificates.slice(startIndex, startIndex + limit);
+      
+      return {
+        certificates: paginatedCertificates,
+        total: certificates.length,
+        page,
+        limit,
+      };
+      
+    } catch (error) {
+      console.error('Error fetching certificates by user:', error);
+      return {
+        certificates: [],
+        total: 0,
+        page,
+        limit,
+      };
+    }
+  }
+
   /**
    * Search certificates
    */

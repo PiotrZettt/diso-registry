@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { TenantProvider } from "@/lib/context/tenant-context";
 import { AuthProvider } from '@/hooks/useAuth';
 
 const geistSans = Geist({
@@ -15,8 +14,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DeFi ISO Registry",
-  description: "Decentralized ISO Certification Registry on Tezos and Etherlink",
+  title: "dISO Registry",
+  description: "Decentralized ISO Certification Registry on Etherlink",
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+    apple: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({
@@ -29,11 +33,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <TenantProvider>
-          <AuthProvider>
-            {children}
-          </AuthProvider>
-        </TenantProvider>
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

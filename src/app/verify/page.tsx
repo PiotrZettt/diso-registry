@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useTenant, useTenantBranding } from '@/lib/context/tenant-context';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import VerificationPayment from '@/components/payments/VerificationPayment';
 import { PaymentService } from '@/services/payment-service';
+import { Logo } from '@/components/ui/Logo';
 
 interface VerificationResult {
   id: string;
@@ -62,8 +62,8 @@ interface VerificationResult {
 }
 
 export default function VerifyPage() {
-  const { tenant } = useTenant();
-  const { primaryColor } = useTenantBranding();
+  // Default branding for single-tenant app
+  const primaryColor = '#2563eb'; // Blue
   const searchParams = useSearchParams();
   const [identifier, setIdentifier] = useState(searchParams.get('id') || '');
   const [verificationType, setVerificationType] = useState<'certificate_number' | 'verification_code'>('certificate_number');
@@ -158,24 +158,22 @@ export default function VerifyPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-white shadow-sm">
+      <header className="border-b bg-card">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="flex items-center">
-              <h1 className="text-xl font-semibold text-gray-900">
-                {tenant?.name || 'DeFi ISO Registry'}
-              </h1>
+              <Logo variant="full" size="small" />
             </Link>
             <nav className="flex space-x-8">
-              <Link href="/search" className="text-gray-600 hover:text-gray-900">
+              <Link href="/search" className="text-muted-foreground hover:text-card-foreground">
                 Search
               </Link>
               <Link href="/verify" className="text-blue-600 hover:text-blue-800 font-medium">
                 Verify
               </Link>
-              <Link href="/login" className="text-gray-600 hover:text-gray-900">
+              <Link href="/login" className="text-muted-foreground hover:text-card-foreground">
                 Login
               </Link>
             </nav>
@@ -185,17 +183,17 @@ export default function VerifyPage() {
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Verify Certificate</h1>
-          <p className="mt-2 text-gray-600">
+          <h1 className="text-3xl font-bold text-card-foreground">Verify Certificate</h1>
+          <p className="mt-2 text-muted-foreground">
             Enter a certificate number or verification code to verify its authenticity
           </p>
         </div>
 
         {/* Verification Form */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+        <div className="bg-card rounded-lg border shadow-sm p-6 mb-8">
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-card-foreground mb-2">
                 Verification Type
               </label>
               <div className="flex space-x-4">
@@ -223,7 +221,7 @@ export default function VerifyPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-card-foreground mb-2">
                 {verificationType === 'certificate_number' ? 'Certificate Number' : 'Verification Code'}
               </label>
               <div className="flex space-x-4">
@@ -232,7 +230,7 @@ export default function VerifyPage() {
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  className="flex-1 px-3 py-2 border border-input rounded-md focus:ring-blue-500 focus:border-blue-500 bg-background"
                   placeholder={verificationType === 'certificate_number' ? 'e.g., ISO-9001-2023-001' : 'e.g., ABC123XYZ'}
                 />
                 <button
@@ -272,7 +270,7 @@ export default function VerifyPage() {
 
         {/* Verification Result */}
         {certificate && !showPayment && (
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+          <div className="bg-card rounded-lg border shadow-sm overflow-hidden">
             {/* Verification Status Header */}
             <div className={`px-6 py-4 ${certificate.verification.isValid ? 'bg-green-50 border-b border-green-200' : 'bg-red-50 border-b border-red-200'}`}>
               <div className="flex items-center">
@@ -284,7 +282,7 @@ export default function VerifyPage() {
                   <p className={`text-sm ${certificate.verification.isValid ? 'text-green-600' : 'text-red-600'}`}>
                     {certificate.verification.message}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     Verified at: {new Date(certificate.verification.verifiedAt).toLocaleString()}
                   </p>
                 </div>
@@ -295,22 +293,22 @@ export default function VerifyPage() {
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <h4 className="text-lg font-medium text-gray-900 mb-4">Certificate Information</h4>
+                  <h4 className="text-lg font-medium text-card-foreground mb-4">Certificate Information</h4>
                   <dl className="space-y-3 text-sm">
                     <div>
-                      <dt className="font-medium text-gray-500">Certificate Number</dt>
-                      <dd className="text-gray-900">{certificate.certificateNumber}</dd>
+                      <dt className="font-medium text-muted-foreground">Certificate Number</dt>
+                      <dd className="text-card-foreground">{certificate.certificateNumber}</dd>
                     </div>
                     <div>
-                      <dt className="font-medium text-gray-500">Standard</dt>
-                      <dd className="text-gray-900">{certificate.standard.number} - {certificate.standard.title}</dd>
+                      <dt className="font-medium text-muted-foreground">Standard</dt>
+                      <dd className="text-card-foreground">{certificate.standard.number} - {certificate.standard.title}</dd>
                     </div>
                     <div>
-                      <dt className="font-medium text-gray-500">Category</dt>
-                      <dd className="text-gray-900">{certificate.standard.category}</dd>
+                      <dt className="font-medium text-muted-foreground">Category</dt>
+                      <dd className="text-card-foreground">{certificate.standard.category}</dd>
                     </div>
                     <div>
-                      <dt className="font-medium text-gray-500">Status</dt>
+                      <dt className="font-medium text-muted-foreground">Status</dt>
                       <dd>
                         <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(certificate.status, certificate.isExpired)}`}>
                           {certificate.isExpired ? 'Expired' : certificate.status}
@@ -318,40 +316,40 @@ export default function VerifyPage() {
                       </dd>
                     </div>
                     <div>
-                      <dt className="font-medium text-gray-500">Issued Date</dt>
-                      <dd className="text-gray-900">{new Date(certificate.issuedDate).toLocaleDateString()}</dd>
+                      <dt className="font-medium text-muted-foreground">Issued Date</dt>
+                      <dd className="text-card-foreground">{new Date(certificate.issuedDate).toLocaleDateString()}</dd>
                     </div>
                     <div>
-                      <dt className="font-medium text-gray-500">Expiry Date</dt>
-                      <dd className="text-gray-900">{new Date(certificate.expiryDate).toLocaleDateString()}</dd>
+                      <dt className="font-medium text-muted-foreground">Expiry Date</dt>
+                      <dd className="text-card-foreground">{new Date(certificate.expiryDate).toLocaleDateString()}</dd>
                     </div>
                     {!certificate.isExpired && (
                       <div>
-                        <dt className="font-medium text-gray-500">Days Until Expiry</dt>
-                        <dd className="text-gray-900">{certificate.daysUntilExpiry} days</dd>
+                        <dt className="font-medium text-muted-foreground">Days Until Expiry</dt>
+                        <dd className="text-card-foreground">{certificate.daysUntilExpiry} days</dd>
                       </div>
                     )}
                   </dl>
                 </div>
 
                 <div>
-                  <h4 className="text-lg font-medium text-gray-900 mb-4">Organization Details</h4>
+                  <h4 className="text-lg font-medium text-card-foreground mb-4">Organization Details</h4>
                   <dl className="space-y-3 text-sm">
                     <div>
-                      <dt className="font-medium text-gray-500">Organization Name</dt>
-                      <dd className="text-gray-900">{certificate.organization.name}</dd>
+                      <dt className="font-medium text-muted-foreground">Organization Name</dt>
+                      <dd className="text-card-foreground">{certificate.organization.name}</dd>
                     </div>
                     <div>
-                      <dt className="font-medium text-gray-500">Location</dt>
-                      <dd className="text-gray-900">{certificate.organization.city}, {certificate.organization.country}</dd>
+                      <dt className="font-medium text-muted-foreground">Location</dt>
+                      <dd className="text-card-foreground">{certificate.organization.city}, {certificate.organization.country}</dd>
                     </div>
                     <div>
-                      <dt className="font-medium text-gray-500">Certification Body</dt>
-                      <dd className="text-gray-900">{certificate.issuerName}</dd>
+                      <dt className="font-medium text-muted-foreground">Certification Body</dt>
+                      <dd className="text-card-foreground">{certificate.issuerName}</dd>
                     </div>
                     <div>
-                      <dt className="font-medium text-gray-500">Verification Code</dt>
-                      <dd className="text-gray-900 font-mono">{certificate.verificationCode}</dd>
+                      <dt className="font-medium text-muted-foreground">Verification Code</dt>
+                      <dd className="text-card-foreground font-mono">{certificate.verificationCode}</dd>
                     </div>
                   </dl>
                 </div>
@@ -359,16 +357,16 @@ export default function VerifyPage() {
 
               {/* Scope */}
               {certificate.scope.description && (
-                <div className="mt-6 pt-6 border-t border-gray-200">
-                  <h4 className="text-lg font-medium text-gray-900 mb-2">Scope of Certification</h4>
-                  <p className="text-sm text-gray-700">{certificate.scope.description}</p>
+                <div className="mt-6 pt-6 border-t border-border">
+                  <h4 className="text-lg font-medium text-card-foreground mb-2">Scope of Certification</h4>
+                  <p className="text-sm text-muted-foreground">{certificate.scope.description}</p>
                   
                   {certificate.scope.sites && certificate.scope.sites.length > 0 && (
                     <div className="mt-4">
-                      <h5 className="text-sm font-medium text-gray-900 mb-2">Certified Sites</h5>
+                      <h5 className="text-sm font-medium text-card-foreground mb-2">Certified Sites</h5>
                       <div className="space-y-2">
                         {certificate.scope.sites.map((site, index) => (
-                          <div key={index} className="text-sm text-gray-700">
+                          <div key={index} className="text-sm text-muted-foreground">
                             <span className="font-medium">{site.name}</span> - {site.city}, {site.country}
                           </div>
                         ))}
@@ -380,9 +378,9 @@ export default function VerifyPage() {
 
               {/* Live Blockchain Verification Status */}
               {certificate.verification.blockchain && (
-                <div className="mt-6 pt-6 border-t border-gray-200">
+                <div className="mt-6 pt-6 border-t border-border">
                   <div className="flex items-center justify-between mb-4">
-                    <h4 className="text-lg font-medium text-gray-900">Live Etherlink Verification</h4>
+                    <h4 className="text-lg font-medium text-card-foreground">Live Etherlink Verification</h4>
                     {paymentCompleted && (
                       <div className="flex items-center text-sm text-green-600 bg-green-50 px-3 py-1 rounded-full">
                         <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -410,7 +408,7 @@ export default function VerifyPage() {
                     
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div className="flex items-center">
-                        <span className="text-gray-600 mr-2">Etherlink Blockchain:</span>
+                        <span className="text-muted-foreground mr-2">Etherlink Blockchain:</span>
                         {certificate.verification.blockchain.etherlinkVerified ? (
                           <span className="text-green-600 flex items-center">
                             <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -429,7 +427,7 @@ export default function VerifyPage() {
                       </div>
                       
                       <div className="flex items-center">
-                        <span className="text-gray-600 mr-2">IPFS Document:</span>
+                        <span className="text-muted-foreground mr-2">IPFS Document:</span>
                         {certificate.verification.ipfs?.verified ? (
                           <span className="text-green-600 flex items-center">
                             <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -456,7 +454,7 @@ export default function VerifyPage() {
                     </div>
                     
                     {(certificate.verification.blockchain.message || certificate.verification.ipfs?.message) && (
-                      <div className="text-sm text-gray-600 mt-2 space-y-1">
+                      <div className="text-sm text-muted-foreground mt-2 space-y-1">
                         {certificate.verification.blockchain.message && (
                           <p><strong>Blockchain:</strong> {certificate.verification.blockchain.message}</p>
                         )}
@@ -470,28 +468,107 @@ export default function VerifyPage() {
               )}
 
               {/* Blockchain Information */}
-              {certificate.blockchain && (
-                <div className="mt-6 pt-6 border-t border-gray-200">
-                  <h4 className="text-lg font-medium text-gray-900 mb-4">Blockchain Transaction Details</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    {certificate.blockchain.tezosTransactionHash && (
-                      <div>
-                        <dt className="font-medium text-gray-500">Tezos Transaction</dt>
-                        <dd className="text-gray-900 font-mono break-all">{certificate.blockchain.tezosTransactionHash}</dd>
+              {certificate.blockchain && (certificate.blockchain.etherlinkTransactionHash || certificate.blockchain.ipfsHash || certificate.blockchain.tezosTransactionHash) && (
+                <div className="mt-6 pt-6 border-t border-border">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-lg font-medium text-card-foreground">Blockchain Transaction Details</h4>
+                    {certificate.verification.blockchain?.verified && (
+                      <div className="flex items-center text-sm text-green-600 bg-green-50 px-3 py-1 rounded-full">
+                        <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Verified on Blockchain
                       </div>
                     )}
+                  </div>
+                  <div className="space-y-4">
                     {certificate.blockchain.etherlinkTransactionHash && (
-                      <div>
-                        <dt className="font-medium text-gray-500">Etherlink Transaction</dt>
-                        <dd className="text-gray-900 font-mono break-all">{certificate.blockchain.etherlinkTransactionHash}</dd>
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <dt className="font-medium text-blue-800 flex items-center">
+                            <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.1a4 4 0 01-.464-2.137c.07-.23.18-.447.326-.637l.464-.464z" />
+                            </svg>
+                            Etherlink Transaction Hash
+                          </dt>
+                          <a 
+                            href={`https://testnet.explorer.etherlink.com/tx/${certificate.blockchain.etherlinkTransactionHash}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium"
+                          >
+                            View on Explorer
+                            <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                          </a>
+                        </div>
+                        <dd className="text-blue-700 font-mono text-sm break-all bg-white p-2 rounded border">
+                          {certificate.blockchain.etherlinkTransactionHash}
+                        </dd>
                       </div>
                     )}
+                    
                     {certificate.blockchain.ipfsHash && (
-                      <div>
-                        <dt className="font-medium text-gray-500">IPFS Hash</dt>
-                        <dd className="text-gray-900 font-mono break-all">{certificate.blockchain.ipfsHash}</dd>
+                      <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <dt className="font-medium text-purple-800 flex items-center">
+                            <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                            </svg>
+                            IPFS Document Hash
+                          </dt>
+                          <a 
+                            href={`https://gateway.pinata.cloud/ipfs/${certificate.blockchain.ipfsHash}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center text-sm text-purple-600 hover:text-purple-800 font-medium"
+                          >
+                            View Document
+                            <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                          </a>
+                        </div>
+                        <dd className="text-purple-700 font-mono text-sm break-all bg-white p-2 rounded border">
+                          {certificate.blockchain.ipfsHash}
+                        </dd>
                       </div>
                     )}
+
+                    {certificate.blockchain.tezosTransactionHash && (
+                      <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <dt className="font-medium text-orange-800 flex items-center">
+                            <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.1a4 4 0 01-.464-2.137c.07-.23.18-.447.326-.637l.464-.464z" />
+                            </svg>
+                            Tezos Transaction Hash
+                          </dt>
+                          <a 
+                            href={`https://ghostnet.tzkt.io/${certificate.blockchain.tezosTransactionHash}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center text-sm text-orange-600 hover:text-orange-800 font-medium"
+                          >
+                            View on Tzkt
+                            <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                          </a>
+                        </div>
+                        <dd className="text-orange-700 font-mono text-sm break-all bg-white p-2 rounded border">
+                          {certificate.blockchain.tezosTransactionHash}
+                        </dd>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                    <p className="text-sm text-gray-600">
+                      <strong>Note:</strong> These cryptographic hashes provide immutable proof of certificate authenticity. 
+                      The Etherlink transaction hash links to the blockchain record, while the IPFS hash provides access to the original certificate document.
+                    </p>
                   </div>
                 </div>
               )}
@@ -501,14 +578,14 @@ export default function VerifyPage() {
 
         {/* No Results */}
         {!loading && !certificate && hasSearched && !error && (
-          <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-            <div className="text-gray-400 mb-4">
+          <div className="bg-card rounded-lg border shadow-sm p-8 text-center">
+            <div className="text-muted-foreground mb-4">
               <svg className="mx-auto h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No certificate found</h3>
-            <p className="text-gray-600">Please check the certificate number or verification code and try again.</p>
+            <h3 className="text-lg font-medium text-card-foreground mb-2">No certificate found</h3>
+            <p className="text-muted-foreground">Please check the certificate number or verification code and try again.</p>
           </div>
         )}
 

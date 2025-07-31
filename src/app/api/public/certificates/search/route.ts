@@ -2,6 +2,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { publicCertificateService } from '@/services/public-certificate-service';
 
+/**
+ * Recursively convert all Set objects to arrays for Next.js serialization
+ */
+function convertSetsToArrays(obj: any): any {
+  if (obj instanceof Set) {
+    return Array.from(obj);
+  }
+  
+  if (Array.isArray(obj)) {
+    return obj.map(item => convertSetsToArrays(item));
+  }
+  
+  if (obj && typeof obj === 'object') {
+    const converted: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      converted[key] = convertSetsToArrays(value);
+    }
+    return converted;
+  }
+  
+  return obj;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -27,10 +50,13 @@ export async function GET(request: NextRequest) {
     });
 
     const result = await publicCertificateService.searchCertificates(query);
+    
+    // Sanitize the result to ensure no Set objects are returned
+    const sanitizedResult = convertSetsToArrays(result);
 
     return NextResponse.json({
       success: true,
-      data: result,
+      data: sanitizedResult,
       message: 'Search completed',
     });
 
@@ -71,10 +97,13 @@ export async function POST(request: NextRequest) {
     });
 
     const result = await publicCertificateService.searchCertificates(query);
+    
+    // Sanitize the result to ensure no Set objects are returned
+    const sanitizedResult = convertSetsToArrays(result);
 
     return NextResponse.json({
       success: true,
-      data: result,
+      data: sanitizedResult,
       message: 'Search completed successfully',
     });
 

@@ -109,7 +109,7 @@ export class BlockchainService {
       try {
         console.log('   🔧 Registering certification body...');
         const registerTx = await this.etherlinkContract.registerCertificationBody(
-          "DeFi ISO Registry",
+          "dISO Registry",
           "DEFISO-001", 
           "Global"
         );
@@ -119,10 +119,11 @@ export class BlockchainService {
         console.log('   ✅ Certification body registered');
         
       } catch (regError) {
-        if (regError.message.includes('already registered')) {
+        const error = regError as Error;
+        if (error.message.includes('already registered')) {
           console.log('   ℹ️ Certification body already registered');
         } else {
-          throw regError;
+          throw error;
         }
       }
       
@@ -136,14 +137,16 @@ export class BlockchainService {
         console.log('   ✅ Certification body approved');
         
       } catch (approveError) {
-        console.log('   ⚠️ Approval may have failed or was already set:', approveError.message);
+        const error = approveError as Error;
+        console.log('   ⚠️ Approval may have failed or was already set:', error.message);
       }
       
       this.initialized = true;
       console.log('   🎉 Certification body initialization complete!');
       
     } catch (error) {
-      console.error('❌ Failed to initialize certification body:', error.message);
+      const err = error as Error;
+      console.error('❌ Failed to initialize certification body:', err.message);
       // Don't throw - service should still work even if registration fails
     }
   }
@@ -186,9 +189,10 @@ export class BlockchainService {
           etherlinkHash = await this.issueCertificateOnEtherlink(certificate, ipfsHash);
           console.log('✅ Etherlink issuance completed:', etherlinkHash);
         } catch (error) {
-          console.error('❌ Etherlink issuance failed:', error.message);
+          const err = error as Error;
+          console.error('❌ Etherlink issuance failed:', err.message);
           console.error('❌ Error details:', error);
-          console.error('❌ Stack trace:', error.stack);
+          console.error('❌ Stack trace:', err.stack);
           throw error; // Fail if Etherlink fails (it's our only blockchain)
         }
       } else {
@@ -307,7 +311,8 @@ export class BlockchainService {
             results.etherlinkVerified = false;
           }
         } catch (ethError) {
-          console.warn('   ⚠️ Etherlink verification failed:', ethError.message);
+          const error = ethError as Error;
+          console.warn('   ⚠️ Etherlink verification failed:', error.message);
           results.etherlinkVerified = false;
         }
       } else {
@@ -362,9 +367,10 @@ export class BlockchainService {
         return { status: 'pending' };
       }
       
+      const confirmations = await receipt.confirmations();
       return {
         status: receipt.status === 1 ? 'confirmed' : 'failed',
-        confirmations: receipt.confirmations,
+        confirmations: confirmations,
         gasUsed: Number(receipt.gasUsed),
       };
     } catch (error) {
@@ -413,7 +419,7 @@ export class BlockchainService {
         ipfsHash,
         '', // No Tezos hash in Etherlink-only architecture
         {
-          gasLimit: gasEstimate * 2n, // Add buffer for safety
+          gasLimit: gasEstimate * BigInt(2), // Add buffer for safety
         }
       );
 
@@ -426,17 +432,18 @@ export class BlockchainService {
       
       return tx.hash;
     } catch (error) {
+      const err = error as any;
       console.error('❌ Etherlink contract interaction failed:', error);
-      if (error.reason) {
-        console.error('   Reason:', error.reason);
+      if (err.reason) {
+        console.error('   Reason:', err.reason);
       }
-      if (error.data) {
-        console.error('   Error data:', error.data);
+      if (err.data) {
+        console.error('   Error data:', err.data);
       }
       
       // For now, throw the error instead of returning mock hash
       // We want to know when real blockchain calls fail
-      throw new Error(`Etherlink certificate issuance failed: ${error.message}`);
+      throw new Error(`Etherlink certificate issuance failed: ${err.message || 'Unknown error'}`);
     }
   }
 
