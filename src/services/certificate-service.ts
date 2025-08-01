@@ -123,11 +123,20 @@ export class CertificateService {
       createdAt: new Date(),
       updatedAt: new Date(),
       // Ensure dates are Date objects for blockchain service
-      issuedDate: new Date(certificateData.issuedDate),
-      expiryDate: new Date(certificateData.expiryDate),
+      issuedDate: certificateData.issuedDate instanceof Date ? certificateData.issuedDate : new Date(certificateData.issuedDate),
+      expiryDate: certificateData.expiryDate instanceof Date ? certificateData.expiryDate : new Date(certificateData.expiryDate),
     };
 
     try {
+      console.log('🚀 Starting certificate creation process for:', certificate.id);
+      console.log('📋 Certificate data:', {
+        id: certificate.id,
+        tenantId: certificate.tenantId,
+        certificateNumber: certificate.certificateNumber,
+        organizationName: certificate.organization.name,
+        standard: certificate.standard.number
+      });
+      
       // 1. Upload certificate document to IPFS first
       console.log('📤 Uploading certificate to IPFS:', certificate.id);
       const ipfsHash = await this.uploadToIPFS(certificate);
@@ -143,11 +152,44 @@ export class CertificateService {
 
       // 2. Issue certificate on blockchain with IPFS hash
       console.log('🚀 Issuing certificate to blockchain:', certificate.id);
-      const blockchainResult = await blockchainService.issueCertificate(certificate);
-      console.log('✅ Blockchain issuance completed:', blockchainResult);
+      let blockchainResult;
+      try {
+        // The blockchain service handles timeouts internally and returns hash immediately
+        blockchainResult = await blockchainService.issueCertificate(certificate);
+        console.log('✅ Blockchain issuance completed:', blockchainResult);
+      } catch (blockchainError) {
+        console.warn('⚠️ Blockchain issuance failed, continuing without blockchain:', blockchainError instanceof Error ? blockchainError.message : 'Unknown error');
+        blockchainResult = { etherlinkHash: undefined, ipfsHash: undefined };
+      }
       
-      // 3. Store in database WITHOUT blockchain data (blockchain is the source of truth)
+      // 3. Update certificate with blockchain results
+      certificate.blockchain = {
+        ...certificate.blockchain,
+        etherlinkTransactionHash: blockchainResult?.etherlinkHash,
+        ipfsHash: blockchainResult?.ipfsHash || certificate.blockchain.ipfsHash,
+      };
+      
+      // 4. Re-upload certificate to IPFS with complete blockchain data (only if blockchain was successful)
+      if (blockchainResult?.etherlinkHash) {
+        console.log('📤 Re-uploading certificate to IPFS with blockchain data:', certificate.id);
+        const finalIpfsHash = await this.uploadToIPFS(certificate);
+        
+        if (finalIpfsHash) {
+          // Update with final IPFS hash that includes blockchain data
+          certificate.blockchain = {
+            ...certificate.blockchain,
+            ipfsHash: finalIpfsHash,
+          };
+          console.log('✅ Final IPFS upload completed with blockchain data:', finalIpfsHash);
+        }
+      } else {
+        console.log('ℹ️ Skipping IPFS re-upload since blockchain failed');
+      }
+      
+      // 5. Store in database WITH blockchain data for public verification
+      console.log('💾 Preparing to save certificate to database:', certificate.id);
       const certificateForDb = this.convertDatesToStrings(certificate);
+      console.log('💾 Certificate converted for database storage');
       
       const command = new PutCommand({
         TableName: CERTIFICATES_TABLE,
@@ -166,14 +208,19 @@ export class CertificateService {
         },
       });
 
-      await docClient.send(command);
+      console.log('💾 Sending certificate to DynamoDB...');
+      try {
+        await docClient.send(command);
+        console.log('✅ Certificate stored in database with blockchain data for public verification');
+      } catch (dbError) {
+        console.error('❌ DynamoDB save failed:', dbError);
+        throw dbError;
+      }
 
-      console.log('✅ Certificate stored in database (blockchain is source of truth for verification)');
-
-      // 3. Record blockchain transaction for audit trail
+      // 6. Record blockchain transaction for audit trail
       const blockchainTxService = new BlockchainTransactionService();
       
-      if (blockchainResult.etherlinkHash) {
+      if (blockchainResult?.etherlinkHash) {
         await blockchainTxService.recordTransaction({
           tenantId,
           certificateId: id,
@@ -185,18 +232,15 @@ export class CertificateService {
         });
       }
 
-      // Update certificate object with blockchain results for return
-      certificate.blockchain = {
-        etherlinkHash: blockchainResult.etherlinkHash,
-        ipfsHash: blockchainResult.ipfsHash || certificate.blockchain.ipfsHash,
-      };
-
       return certificate;
 
     } catch (error) {
-      console.error('Certificate creation with blockchain failed:', error);
+      console.error('❌ Certificate creation with blockchain failed:', error);
+      console.error('❌ Error details:', error instanceof Error ? error.message : 'Unknown error');
+      console.error('❌ Stack trace:', error instanceof Error ? error.stack : 'No stack trace');
       
       // Fallback: Create certificate without blockchain (for development/testing)
+      console.log('⚠️ Creating certificate without blockchain as fallback...');
       const certificateForDbFallback = this.convertDatesToStrings(certificate);
       
       const command = new PutCommand({

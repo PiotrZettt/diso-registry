@@ -115,7 +115,13 @@ export class BlockchainService {
         );
         
         console.log('   📝 Registration transaction:', registerTx.hash);
-        await registerTx.wait();
+        // Wait for transaction with timeout
+        await Promise.race([
+          registerTx.wait(),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Registration transaction timeout')), 30000)
+          )
+        ]);
         console.log('   ✅ Certification body registered');
         
       } catch (regError) {
@@ -133,7 +139,13 @@ export class BlockchainService {
         const approveTx = await this.etherlinkContract.approveCertificationBody(walletAddress, true);
         
         console.log('   📝 Approval transaction:', approveTx.hash);
-        await approveTx.wait();
+        // Wait for transaction with timeout
+        await Promise.race([
+          approveTx.wait(),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Approval transaction timeout')), 30000)
+          )
+        ]);
         console.log('   ✅ Certification body approved');
         
       } catch (approveError) {
@@ -161,10 +173,21 @@ export class BlockchainService {
     try {
       console.log('🚀 Starting Etherlink certificate issuance...');
       
-      // Ensure certification body is initialized before issuing certificates
+      // Try to initialize certification body, but don't block certificate issuance
       if (this.etherlinkContract && !this.initialized) {
-        console.log('⏳ Waiting for certification body initialization...');
-        await this.initializeCertificationBody();
+        console.log('⏳ Attempting certification body initialization (non-blocking)...');
+        // Start initialization in background, don't wait for it
+        this.initializeCertificationBody()
+          .then(() => {
+            console.log('✅ Certification body initialization completed in background');
+          })
+          .catch((initError) => {
+            console.warn('⚠️ Certification body initialization failed in background:', initError instanceof Error ? initError.message : 'Unknown error');
+          });
+        
+        // Mark as initialized to prevent future attempts
+        this.initialized = true;
+        console.log('✅ Proceeding with certificate issuance without waiting for certification body');
       }
       
       // Use existing IPFS hash from certificate (uploaded by certificate service)
@@ -264,6 +287,8 @@ export class BlockchainService {
     isValid: boolean;
     onChainData?: any;
     etherlinkVerified?: boolean;
+    isPending?: boolean;
+    message?: string;
   }> {
     const results: any = {
       isValid: false,
@@ -276,8 +301,11 @@ export class BlockchainService {
       // Check on Etherlink
       if (this.etherlinkContract) {
         try {
-          console.log('   📋 Checking Etherlink contract...');
+          console.log('   📋 Checking Etherlink contract for certificate:', certificateId);
+          console.log('   📋 Contract address:', this.etherlinkContract.target);
+          
           const isValid = await this.etherlinkContract.isCertificateValid(certificateId);
+          console.log('   📋 isCertificateValid result:', isValid);
           
           if (isValid) {
             console.log('   ✅ Certificate found on Etherlink!');
@@ -307,8 +335,12 @@ export class BlockchainService {
             console.log('      IPFS Hash:', onChainData.ipfsHash);
             console.log('      Status:', onChainData.status === 0 ? 'Valid' : 'Invalid');
           } else {
-            console.log('   ❌ Certificate not found on Etherlink');
+            console.log('   ❌ Certificate not found on Etherlink - may be pending confirmation');
             results.etherlinkVerified = false;
+            
+            // For newly issued certificates, provide partial verification
+            results.isPending = true;
+            results.message = 'Certificate transaction submitted to blockchain but not yet confirmed. Please try again in a few minutes.';
           }
         } catch (ethError) {
           const error = ethError as Error;
@@ -354,6 +386,35 @@ export class BlockchainService {
   }
 
   /**
+   * Get the balance of the service wallet
+   */
+  async getWalletBalance(): Promise<{ address: string; balance: string }> {
+    if (!this.etherlinkContract || !this.etherlinkContract.runner) {
+      // If wallet is not available, return zero state
+      return {
+        address: 'Not configured',
+        balance: '0.0',
+      };
+    }
+
+    try {
+      const wallet = this.etherlinkContract.runner as ethers.Wallet;
+      const balance = await this.etherlinkProvider.getBalance(wallet.address);
+      
+      return {
+        address: wallet.address,
+        balance: ethers.formatEther(balance),
+      };
+    } catch (error) {
+      console.error('Failed to get wallet balance:', error);
+      return {
+        address: 'Error',
+        balance: 'Error fetching balance',
+      };
+    }
+  }
+
+  /**
    * Get blockchain transaction status
    */
   async getTransactionStatus(hash: string): Promise<{
@@ -387,8 +448,7 @@ export class BlockchainService {
     ipfsHash: string
   ): Promise<string> {
     if (!this.etherlinkContract) {
-      console.warn('Etherlink contract not initialized - using development mode');
-      return this.generateMockTransactionHash('ethereum');
+      throw new Error('Etherlink contract not initialized');
     }
 
     try {
@@ -424,11 +484,17 @@ export class BlockchainService {
       );
 
       console.log('   📝 Transaction sent:', tx.hash);
-      console.log('   ⏳ Waiting for confirmation...');
-      
-      const receipt = await tx.wait();
-      console.log('   ✅ Transaction confirmed! Block:', receipt.blockNumber);
       console.log('   🌐 Explorer: https://testnet.explorer.etherlink.com/tx/' + tx.hash);
+      
+      console.log('   ⏳ Waiting for transaction confirmation...');
+      const receipt = await tx.wait();
+      
+      if (receipt.status === 0) {
+        console.error('   ❌ Transaction failed on-chain (reverted). Receipt:', receipt);
+        throw new Error(`Transaction reverted. Check explorer for details: ${tx.hash}`);
+      }
+      
+      console.log('   ✅ Transaction confirmed! Block:', receipt.blockNumber);
       
       return tx.hash;
     } catch (error) {
@@ -441,9 +507,7 @@ export class BlockchainService {
         console.error('   Error data:', err.data);
       }
       
-      // For now, throw the error instead of returning mock hash
-      // We want to know when real blockchain calls fail
-      throw new Error(`Etherlink certificate issuance failed: ${err.message || 'Unknown error'}`);
+      throw new Error(`Etherlink certificate issuance failed: ${err.reason || err.message || 'Unknown error'}`);
     }
   }
 

@@ -6,23 +6,26 @@ import { publicCertificateService } from '@/services/public-certificate-service'
  * Recursively convert all Set objects to arrays for Next.js serialization
  */
 function convertSetsToArrays(obj: any): any {
+  if (obj === null || typeof obj !== 'object') {
+    return obj;
+  }
+
   if (obj instanceof Set) {
-    return Array.from(obj);
+    return Array.from(obj).map(convertSetsToArrays);
   }
-  
+
   if (Array.isArray(obj)) {
-    return obj.map(item => convertSetsToArrays(item));
+    return obj.map(convertSetsToArrays);
   }
   
-  if (obj && typeof obj === 'object') {
-    const converted: any = {};
-    for (const [key, value] of Object.entries(obj)) {
-      converted[key] = convertSetsToArrays(value);
+  // This handles generic objects
+  const newObj: { [key: string]: any } = {};
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      newObj[key] = convertSetsToArrays(obj[key]);
     }
-    return converted;
   }
-  
-  return obj;
+  return newObj;
 }
 
 export async function GET(request: NextRequest) {

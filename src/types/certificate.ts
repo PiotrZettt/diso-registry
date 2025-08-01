@@ -2,6 +2,7 @@
 
 export interface ISOCertificate {
   id: string;
+  tenantId: string; // Tenant/organization ID for multi-tenancy
   certificationBodyId: string; // Which certification body issued this certificate
   issuedByUserId: string; // Which user from the certification body issued it
   
@@ -9,6 +10,7 @@ export interface ISOCertificate {
   certificateNumber: string;
   issuerName: string;
   issuerCode: string;
+  certificationBodyContact?: string; // Contact email for the certification body
   
   // Organization details
   organization: {

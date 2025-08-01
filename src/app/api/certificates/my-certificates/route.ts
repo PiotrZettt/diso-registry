@@ -9,20 +9,19 @@ function convertSetsToArrays(obj: any): any {
   if (obj instanceof Set) {
     return Array.from(obj);
   }
-  
   if (Array.isArray(obj)) {
     return obj.map(item => convertSetsToArrays(item));
   }
-  
-  if (obj && typeof obj === 'object') {
-    const converted: any = {};
-    for (const [key, value] of Object.entries(obj)) {
-      converted[key] = convertSetsToArrays(value);
-    }
-    return converted;
+  // Handle null, non-objects, and Date objects, which should not be recursed into
+  if (obj === null || typeof obj !== 'object' || obj instanceof Date) {
+    return obj;
   }
   
-  return obj;
+  const converted: any = {};
+  for (const [key, value] of Object.entries(obj)) {
+    converted[key] = convertSetsToArrays(value);
+  }
+  return converted;
 }
 
 export async function GET(request: NextRequest) {
@@ -68,8 +67,30 @@ export async function GET(request: NextRequest) {
     const startIndex = (page - 1) * limit;
     const paginatedCertificates = filteredCertificates.slice(startIndex, startIndex + limit);
     
-    // Convert any remaining Sets to arrays before returning
-    const sanitizedCertificates = paginatedCertificates.map(cert => convertSetsToArrays(cert));
+    // Convert any remaining Sets to arrays and dates to ISO strings before returning
+    const sanitizedCertificates = paginatedCertificates.map(cert => {
+      const sanitized = convertSetsToArrays(cert);
+      
+      // Fix date handling - use the actual date strings from DynamoDB
+      return {
+        ...sanitized,
+        // Use the stored date strings directly, falling back to index fields if main fields are empty
+        issuedDate: (sanitized.issuedDate instanceof Date ? sanitized.issuedDate.toISOString() : 
+                    typeof sanitized.issuedDate === 'string' ? sanitized.issuedDate :
+                    sanitized.auditInfo?.auditDate || new Date().toISOString()),
+        expiryDate: (sanitized.expiryDate instanceof Date ? sanitized.expiryDate.toISOString() : 
+                    typeof sanitized.expiryDate === 'string' ? sanitized.expiryDate :
+                    sanitized.expiryDateIndex || new Date().toISOString()),
+        createdAt: (sanitized.createdAt instanceof Date ? sanitized.createdAt.toISOString() : 
+                   typeof sanitized.createdAt === 'string' ? sanitized.createdAt :
+                   sanitized.auditInfo?.auditDate || new Date().toISOString()),
+        updatedAt: (sanitized.updatedAt instanceof Date ? sanitized.updatedAt.toISOString() : 
+                   typeof sanitized.updatedAt === 'string' ? sanitized.updatedAt :
+                   sanitized.auditInfo?.auditDate || new Date().toISOString()),
+        suspendedDate: sanitized.suspendedDate instanceof Date ? sanitized.suspendedDate.toISOString() : sanitized.suspendedDate,
+        revokedDate: sanitized.revokedDate instanceof Date ? sanitized.revokedDate.toISOString() : sanitized.revokedDate,
+      };
+    });
     
     const results = {
       certificates: sanitizedCertificates,

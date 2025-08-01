@@ -124,12 +124,10 @@ export class AuthService {
       // Generate JWT token
       const token = this.generateJWT(user);
 
-      // Remove password from response
-      const { password, ...userWithoutPassword } = user;
-
+      // No password property on user, so just return user
       return {
         success: true,
-        user: userWithoutPassword as TenantUser,
+        user: user as TenantUser,
         token,
         message: 'User registered successfully'
       };

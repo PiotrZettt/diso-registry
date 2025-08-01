@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { PublicCertificate } from '@/services/public-certificate-service';
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/Logo";
+import { useAuth } from '@/hooks/useAuth';
 
 interface SearchFilters {
   certificateNumber: string;
@@ -15,6 +16,7 @@ interface SearchFilters {
 }
 
 export default function Home() {
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [certificates, setCertificates] = useState<PublicCertificate[]>([]);
   const [loading, setLoading] = useState(false);
@@ -54,7 +56,7 @@ export default function Home() {
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleSearch();
     }
@@ -79,10 +81,9 @@ export default function Home() {
           <div className="flex justify-between items-center h-16">
             <Logo variant="full" size="small" />
             <nav className="flex space-x-8">
-              <Link href="/search" className="text-muted-foreground hover:text-card-foreground">Search</Link>
-              <Link href="/verify" className="text-muted-foreground hover:text-card-foreground">Verify</Link>
-              <a href="#features" className="text-muted-foreground hover:text-card-foreground">About</a>
-              <Link href="/login" className="text-muted-foreground hover:text-card-foreground">Login</Link>
+              <Link href={user ? "/dashboard" : "/login"}>
+                <Button variant="outline">Certification Body</Button>
+              </Link>
             </nav>
           </div>
         </div>
@@ -109,7 +110,7 @@ export default function Home() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyPress={handleKeyPress}
+                  onKeyDown={handleKeyDown}
                   className="block w-full pr-20 border border-input rounded-md focus:ring-blue-500 focus:border-blue-500 text-lg py-4 px-4 bg-background text-card-foreground placeholder-muted-foreground"
                   placeholder="Search by company name, certificate number, or ISO standard..."
                 />

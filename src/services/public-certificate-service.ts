@@ -54,8 +54,8 @@ export interface PublicCertificate {
     title: string;
     category: string;
   };
-  issuedDate: Date;
-  expiryDate: Date;
+  issuedDate: string; // ISO string for API serialization
+  expiryDate: string; // ISO string for API serialization
   status: string;
   scope: {
     description: string;
@@ -529,6 +529,7 @@ export class PublicCertificateService {
     // Convert all Set objects to arrays recursively to fix Next.js serialization
     const sanitizedItem = this.convertSetsToArrays(item);
     
+    // Simple date handling - DynamoDB stores ISO strings, just return them
     const expiryDate = new Date(sanitizedItem.expiryDate);
     const now = new Date();
     const daysUntilExpiry = Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
@@ -547,8 +548,8 @@ export class PublicCertificateService {
         title: sanitizedItem.standard?.title || '',
         category: sanitizedItem.standard?.category || '',
       },
-      issuedDate: new Date(sanitizedItem.issuedDate),
-      expiryDate: expiryDate,
+      issuedDate: sanitizedItem.issuedDate,
+      expiryDate: sanitizedItem.expiryDate,
       status: sanitizedItem.status,
       scope: {
         description: typeof sanitizedItem.scope === 'string' ? sanitizedItem.scope : sanitizedItem.scope?.description || '',
@@ -561,7 +562,11 @@ export class PublicCertificateService {
           : [],
       },
       verificationCode: sanitizedItem.metadata?.verificationCode || '',
-      blockchain: {}, // Blockchain data read directly from blockchain, not database
+      blockchain: {
+        etherlinkTransactionHash: sanitizedItem.blockchain?.etherlinkTransactionHash,
+        ipfsHash: sanitizedItem.blockchain?.ipfsHash,
+        tezosTransactionHash: sanitizedItem.blockchain?.tezosTransactionHash,
+      },
       isExpired: daysUntilExpiry <= 0,
       daysUntilExpiry: Math.max(0, daysUntilExpiry),
     };

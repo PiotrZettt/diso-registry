@@ -6,6 +6,8 @@ import { useSearchParams } from 'next/navigation';
 import VerificationPayment from '@/components/payments/VerificationPayment';
 import { PaymentService } from '@/services/payment-service';
 import { Logo } from '@/components/ui/Logo';
+import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
 
 interface VerificationResult {
   id: string;
@@ -51,6 +53,7 @@ interface VerificationResult {
       etherlinkVerified?: boolean;
       onChainData?: any;
       message?: string;
+      isPending?: boolean;
     };
     ipfs?: {
       verified: boolean;
@@ -62,6 +65,7 @@ interface VerificationResult {
 }
 
 export default function VerifyPage() {
+  const { user } = useAuth();
   // Default branding for single-tenant app
   const primaryColor = '#2563eb'; // Blue
   const searchParams = useSearchParams();
@@ -167,14 +171,8 @@ export default function VerifyPage() {
               <Logo variant="full" size="small" />
             </Link>
             <nav className="flex space-x-8">
-              <Link href="/search" className="text-muted-foreground hover:text-card-foreground">
-                Search
-              </Link>
-              <Link href="/verify" className="text-blue-600 hover:text-blue-800 font-medium">
-                Verify
-              </Link>
-              <Link href="/login" className="text-muted-foreground hover:text-card-foreground">
-                Login
+              <Link href={user ? "/dashboard" : "/login"}>
+                <Button variant="outline">Certification Body</Button>
               </Link>
             </nav>
           </div>
@@ -416,6 +414,13 @@ export default function VerifyPage() {
                             </svg>
                             Verified
                           </span>
+                        ) : certificate.verification.blockchain.isPending ? (
+                          <span className="text-yellow-600 flex items-center">
+                            <svg className="h-4 w-4 mr-1 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            Pending Confirmation
+                          </span>
                         ) : (
                           <span className="text-red-600 flex items-center">
                             <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -461,6 +466,13 @@ export default function VerifyPage() {
                         {certificate.verification.ipfs?.message && (
                           <p><strong>IPFS:</strong> {certificate.verification.ipfs.message}</p>
                         )}
+                      </div>
+                    )}
+                    
+                    {certificate.verification.blockchain?.isPending && (
+                      <div className="text-sm text-yellow-700 mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded">
+                        <p><strong>⏳ Blockchain Confirmation Pending</strong></p>
+                        <p>This certificate was recently issued. The blockchain transaction is still being confirmed. Please check again in 5-10 minutes for full blockchain verification.</p>
                       </div>
                     )}
                   </div>

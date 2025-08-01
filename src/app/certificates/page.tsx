@@ -39,12 +39,16 @@ export default function CertificatesPage() {
         const result = await response.json();
         
         if (result.success && result.data.certificates) {
+          console.log('🔍 Raw API response certificates:', result.data.certificates);
           // Map the API response to our interface
           const mappedCertificates = result.data.certificates.map((cert: any) => {
-            console.log('📄 Certificate mapping:', { 
-              dbId: cert.id, 
-              certificateNumber: cert.certificateNumber,
-              usingForId: cert.certificateNumber || cert.id 
+            console.log('📅 Date debugging for cert:', {
+              issuedDate: cert.issuedDate,
+              expiryDate: cert.expiryDate,
+              issuedDateType: typeof cert.issuedDate,
+              expiryDateType: typeof cert.expiryDate,
+              issuedDateParsed: cert.issuedDate ? new Date(cert.issuedDate) : 'no date',
+              expiryDateParsed: cert.expiryDate ? new Date(cert.expiryDate) : 'no date'
             });
             return {
               id: cert.certificateNumber || cert.id, // Use certificateNumber for URL routing
@@ -176,8 +180,8 @@ export default function CertificatesPage() {
                         </div>
                         <div className="flex items-center space-x-4">
                           <div className="text-right">
-                            <p className="text-sm text-gray-500">Issued: {new Date(certificate.issuedDate).toLocaleDateString()}</p>
-                            <p className="text-sm text-gray-500">Expires: {new Date(certificate.expiryDate).toLocaleDateString()}</p>
+                            <p className="text-sm text-gray-500">Issued: {certificate.issuedDate ? new Date(certificate.issuedDate).toLocaleDateString() : 'N/A'}</p>
+                            <p className="text-sm text-gray-500">Expires: {certificate.expiryDate ? new Date(certificate.expiryDate).toLocaleDateString() : 'N/A'}</p>
                           </div>
                           <span className={getStatusBadge(certificate.status)}>
                             {certificate.status}

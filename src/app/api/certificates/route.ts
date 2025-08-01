@@ -29,11 +29,6 @@ function convertSetsToArrays(obj: any): any {
 export async function GET(request: NextRequest) {
   try {
     const tenant = await getTenantFromRequest(request);
-    console.log('🔍 Certificates GET - Tenant resolution result:', {
-      tenant: tenant ? { id: tenant.id, name: tenant.name } : null,
-      host: request.headers.get('host'),
-      url: request.url
-    });
     
     const { searchParams } = new URL(request.url);
     const certificateNumber = searchParams.get('certificateNumber');
@@ -44,15 +39,14 @@ export async function GET(request: NextRequest) {
     const lastKey = searchParams.get('lastKey');
 
     if (!tenant) {
-      console.log('❌ No tenant found, falling back to global tenant for debugging');
       // Use global tenant to match my-certificates API
       const fallbackTenant = { id: 'global', name: 'Global Tenant' };
       
       // Get specific certificate if requested
       if (certificateNumber) {
-        console.log('🔍 Looking for certificate with fallback:', { certificateNumber, tenantId: fallbackTenant.id });
+
         const certificate = await certificateService.getCertificate(fallbackTenant.id, certificateNumber);
-        console.log('📄 Certificate lookup result with fallback:', certificate ? 'found' : 'not found');
+
         if (!certificate) {
           return NextResponse.json(
             { error: 'Certificate not found' },
@@ -63,7 +57,6 @@ export async function GET(request: NextRequest) {
       }
       
       const result = await certificateService.getCertificatesByTenant(fallbackTenant.id, 50);
-      console.log('📊 Found certificates with fallback tenant:', result.certificates.length);
       
       return NextResponse.json(convertSetsToArrays({
         ...result,
@@ -73,9 +66,9 @@ export async function GET(request: NextRequest) {
 
     // Get specific certificate
     if (certificateNumber) {
-      console.log('🔍 Looking for certificate:', { certificateNumber, tenantId: tenant.id });
+
       const certificate = await certificateService.getCertificate(tenant.id, certificateNumber);
-      console.log('📄 Certificate lookup result:', certificate ? 'found' : 'not found');
+
       if (!certificate) {
         return NextResponse.json(
           { error: 'Certificate not found' },
@@ -171,13 +164,6 @@ export async function POST(request: NextRequest) {
     };
 
     const certificate = await certificateService.createCertificate(tenant.id, certificateData);
-    
-    console.log('📋 Certificate creation result:', {
-      id: certificate.id,
-      certificateNumber: certificate.certificateNumber,
-      blockchain: certificate.blockchain,
-      hasBlockchainError: !!(certificate as any).blockchainError
-    });
     
     return NextResponse.json(
       { 
