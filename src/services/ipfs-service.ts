@@ -66,7 +66,7 @@ export class IPFSService {
     valid: boolean;
     matches: boolean;
     retrievedData?: Record<string, unknown>;
-    _error?: string;
+    error?: string;
   }> {
     try {
       const retrievalResult = await this.retrieveCertificate(ipfsHash);
@@ -75,7 +75,7 @@ export class IPFSService {
         return {
           valid: false,
           matches: false,
-          _error: retrievalResult._error,
+          error: retrievalResult._error,
         };
       }
 
@@ -93,7 +93,7 @@ export class IPFSService {
       return {
         valid: false,
         matches: false,
-        _error: _error instanceof Error ? _error.message : 'Verification failed',
+        error: __error instanceof Error ? __error.message : 'Verification failed',
       };
     }
   }
