@@ -115,11 +115,18 @@ class AWSConfigService {
    * Get DynamoDB client configuration
    */
   async getDynamoDBConfig(): Promise<any> {
+    const region = process.env.AWS_REGION || process.env.DEFISO_AWS_REGION || 'eu-west-2';
+    
     // For Amplify/Lambda environment, use IAM role (no explicit credentials)
     if (this.isAmplifyEnvironment()) {
       console.log('🚀 Amplify/Lambda environment - using IAM role for DynamoDB');
+      console.log('🌍 Using region:', region);
+      
+      // Return minimal config to let AWS SDK use the execution role
       return {
-        region: process.env.AWS_REGION || 'eu-west-2',
+        region: region,
+        // Explicitly tell AWS SDK to use the execution role
+        credentials: undefined, // This forces AWS SDK to use the Lambda execution role
       };
     }
 
@@ -127,7 +134,7 @@ class AWSConfigService {
     const credentials = await this.getCredentials();
     
     const config: any = {
-      region: process.env.AWS_REGION || process.env.DEFISO_AWS_REGION || 'eu-west-2',
+      region: region,
     };
 
     if (credentials) {
@@ -154,7 +161,9 @@ class AWSConfigService {
    * Check if DynamoDB should be used
    */
   shouldUseDynamoDB(): boolean {
-    return process.env.USE_DYNAMODB === 'true';
+    const useDynamoDB = process.env.USE_DYNAMODB;
+    console.log('🔍 USE_DYNAMODB environment variable:', useDynamoDB);
+    return useDynamoDB === 'true';
   }
 }
 
