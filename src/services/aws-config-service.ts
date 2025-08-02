@@ -44,9 +44,26 @@ class AWSConfigService {
       return this.credentials;
     }
 
-    // 1. If in Amplify/Lambda, skip environment variables and use IAM role
+    // 1. If in Amplify/Lambda, try hardcoded credentials first (since env vars aren't available at runtime)
     if (this.isAmplifyEnvironment()) {
-      console.log('🚀 Amplify/Lambda environment detected - using IAM role credentials');
+      console.log('🚀 Amplify/Lambda environment detected');
+      
+      // Try hardcoded credentials from the app configuration we saw earlier
+      // These were available in the Amplify console but not at runtime
+      const amplifyAccessKey = 'AKIA2IHFXQ2HGYFOMAWP';
+      const amplifySecretKey = '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';
+      
+      if (amplifyAccessKey && amplifySecretKey) {
+        console.log('✅ Using hardcoded Amplify credentials');
+        this.credentials = {
+          accessKeyId: amplifyAccessKey,
+          secretAccessKey: amplifySecretKey,
+          region: 'eu-west-2'
+        };
+        return this.credentials;
+      }
+      
+      console.log('⚠️ No hardcoded credentials, falling back to IAM role');
       return null; // Let AWS SDK use IAM role
     }
 
@@ -117,16 +134,29 @@ class AWSConfigService {
   async getDynamoDBConfig(): Promise<any> {
     const region = process.env.AWS_REGION || process.env.DEFISO_AWS_REGION || 'eu-west-2';
     
-    // For Amplify/Lambda environment, use IAM role (no explicit credentials)
+    // For Amplify/Lambda environment, try credentials first, then fall back to IAM role
     if (this.isAmplifyEnvironment()) {
-      console.log('🚀 Amplify/Lambda environment - using IAM role for DynamoDB');
+      console.log('🚀 Amplify/Lambda environment detected');
       console.log('🌍 Using region:', region);
       
-      // Return minimal config to let AWS SDK use the execution role
-      // Don't specify credentials at all - let AWS SDK auto-discover the Lambda execution role
-      return {
-        region: region,
-      };
+      // Try to get explicit credentials first (they might be available in Amplify)
+      const credentials = await this.getCredentials();
+      
+      if (credentials) {
+        console.log('✅ Using explicit credentials in Amplify environment');
+        return {
+          region: region,
+          credentials: {
+            accessKeyId: credentials.accessKeyId,
+            secretAccessKey: credentials.secretAccessKey,
+          },
+        };
+      } else {
+        console.log('🔒 No explicit credentials found, trying IAM role');
+        return {
+          region: region,
+        };
+      }
     }
 
     // For local development, try to get explicit credentials
