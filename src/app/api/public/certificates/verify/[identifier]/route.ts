@@ -84,7 +84,7 @@ export async function GET(
       try {
         const ipfsResult = await ipfsService.verifyCertificateIntegrity(
           ipfsHash,
-          certificate as Record<string, unknown>
+          certificate as unknown as Record<string, unknown>
         );
         ipfsVerification = {
           verified: ipfsResult.valid && ipfsResult.matches,
