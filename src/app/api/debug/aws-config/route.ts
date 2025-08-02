@@ -26,6 +26,11 @@ export async function GET(request: NextRequest) {
     
     try {
       console.log('🔍 Testing DynamoDB connection...');
+      console.log('🔍 DynamoDB client config:', JSON.stringify(dynamoConfig, null, 2));
+      
+      // Try to get AWS SDK to resolve credentials first
+      console.log('🔍 Checking AWS credentials resolution...');
+      
       const listTablesResult = await dynamoClient.send(new ListTablesCommand({}));
       tablesResult = {
         tableCount: listTablesResult.TableNames?.length || 0,
@@ -35,6 +40,17 @@ export async function GET(request: NextRequest) {
     } catch (error) {
       tablesError = error instanceof Error ? error.message : 'Unknown error';
       console.error('❌ DynamoDB connection failed:', tablesError);
+      console.error('❌ Full error:', error);
+      
+      // Additional debugging
+      console.log('🔍 AWS_EXECUTION_ENV:', process.env.AWS_EXECUTION_ENV);
+      console.log('🔍 AWS_LAMBDA_FUNCTION_NAME:', process.env.AWS_LAMBDA_FUNCTION_NAME);
+      console.log('🔍 AWS_REGION:', process.env.AWS_REGION);
+      console.log('🔍 All AWS env vars:', JSON.stringify(
+        Object.fromEntries(
+          Object.entries(process.env).filter(([key]) => key.startsWith('AWS_'))
+        ), null, 2
+      ));
     }
 
     const debugInfo = {
