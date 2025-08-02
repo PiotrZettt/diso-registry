@@ -285,12 +285,40 @@ export class BlockchainService {
    */
   async verifyCertificate(certificateId: string): Promise<{
     isValid: boolean;
-    onChainData?: any;
+    onChainData?: {
+      certificateId: string;
+      organizationName: string;
+      standard: string;
+      issuerName: string;
+      issuedDate: Date;
+      expiryDate: Date;
+      status: number;
+      ipfsHash: string;
+      tezosHash?: string;
+      certificationBodyAddress: string;
+    };
     etherlinkVerified?: boolean;
     isPending?: boolean;
     message?: string;
   }> {
-    const results: any = {
+    const results: {
+      isValid: boolean;
+      etherlinkVerified: boolean;
+      onChainData?: {
+        certificateId: string;
+        organizationName: string;
+        standard: string;
+        issuerName: string;
+        issuedDate: Date;
+        expiryDate: Date;
+        status: number;
+        ipfsHash: string;
+        tezosHash?: string;
+        certificationBodyAddress: string;
+      };
+      isPending?: boolean;
+      message?: string;
+    } = {
       isValid: false,
       etherlinkVerified: false
     };
@@ -498,7 +526,7 @@ export class BlockchainService {
       
       return tx.hash;
     } catch (error) {
-      const err = error as any;
+      const err = error as Error & { reason?: string; data?: unknown };
       console.error('❌ Etherlink contract interaction failed:', error);
       if (err.reason) {
         console.error('   Reason:', err.reason);
@@ -512,7 +540,7 @@ export class BlockchainService {
   }
 
 
-  private async uploadToIPFS(data: any): Promise<string> {
+  private async uploadToIPFS(data: ISOCertificate): Promise<string> {
     try {
       if (this.config.ipfs.pinataApiKey && this.config.ipfs.pinataSecretKey) {
         // For demo purposes, simulate real IPFS upload with realistic hash

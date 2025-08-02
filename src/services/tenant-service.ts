@@ -16,8 +16,8 @@ export class TenantService {
     domain?: string;
     subdomain?: string;
     plan?: 'basic' | 'professional' | 'enterprise';
-    branding?: any;
-    settings?: any;
+    branding?: Record<string, unknown>;
+    settings?: Record<string, unknown>;
   }): Promise<Tenant> {
     const slug = data.slug || generateTenantSlug(data.name);
     
@@ -37,7 +37,7 @@ export class TenantService {
         slug,
         domain: data.domain,
         subdomain: data.subdomain,
-        plan: data.plan?.toUpperCase() as any || 'BASIC',
+        plan: (data.plan?.toUpperCase() as 'BASIC' | 'PROFESSIONAL' | 'ENTERPRISE') || 'BASIC',
         branding: data.branding || {
           primaryColor: '#3B82F6',
           secondaryColor: '#64748B'
@@ -160,8 +160,8 @@ export class TenantService {
         name: data.name,
         domain: data.domain,
         subdomain: data.subdomain,
-        status: data.status?.toUpperCase() as any,
-        plan: data.plan?.toUpperCase() as any,
+        status: data.status?.toUpperCase() as 'ACTIVE' | 'INACTIVE' | 'SUSPENDED',
+        plan: data.plan?.toUpperCase() as 'BASIC' | 'PROFESSIONAL' | 'ENTERPRISE',
         branding: data.branding,
         settings: data.settings,
         contactInfo: data.contactInfo
@@ -207,8 +207,8 @@ export class TenantService {
         email: data.email,
         firstName: data.firstName,
         lastName: data.lastName,
-        role: data.role.toUpperCase() as any,
-        status: data.status?.toUpperCase() as any || 'PENDING',
+        role: data.role.toUpperCase() as 'TENANT_ADMIN' | 'ADMIN' | 'USER',
+        status: (data.status?.toUpperCase() as 'ACTIVE' | 'PENDING' | 'INACTIVE') || 'PENDING',
         permissions: data.permissions || []
       }
     });
@@ -261,7 +261,7 @@ export class TenantService {
       data: {
         tenantId: data.tenantId,
         email: data.email,
-        role: data.role.toUpperCase() as any,
+        role: data.role.toUpperCase() as 'TENANT_ADMIN' | 'ADMIN' | 'USER',
         invitedBy: data.invitedBy,
         token,
         expiresAt
@@ -327,57 +327,57 @@ export class TenantService {
   /**
    * Map database tenant to domain model
    */
-  private mapTenantFromDb(tenant: any): Tenant {
+  private mapTenantFromDb(tenant: Record<string, unknown>): Tenant {
     return {
-      id: tenant.id,
-      name: tenant.name,
-      slug: tenant.slug,
-      domain: tenant.domain,
-      subdomain: tenant.subdomain,
-      status: tenant.status.toLowerCase(),
-      plan: tenant.plan.toLowerCase(),
-      branding: tenant.branding || {},
-      settings: tenant.settings || {},
-      blockchain: tenant.blockchain || {},
-      contactInfo: tenant.contactInfo || {},
-      createdAt: tenant.createdAt,
-      updatedAt: tenant.updatedAt
+      id: tenant.id as string,
+      name: tenant.name as string,
+      slug: tenant.slug as string,
+      domain: tenant.domain as string,
+      subdomain: tenant.subdomain as string,
+      status: (tenant.status as string).toLowerCase(),
+      plan: (tenant.plan as string).toLowerCase(),
+      branding: (tenant.branding as Record<string, unknown>) || {},
+      settings: (tenant.settings as Record<string, unknown>) || {},
+      blockchain: (tenant.blockchain as Record<string, unknown>) || {},
+      contactInfo: (tenant.contactInfo as Record<string, unknown>) || {},
+      createdAt: tenant.createdAt as Date,
+      updatedAt: tenant.updatedAt as Date
     };
   }
   
   /**
    * Map database tenant user to domain model
    */
-  private mapTenantUserFromDb(user: any): TenantUser {
+  private mapTenantUserFromDb(user: Record<string, unknown>): TenantUser {
     return {
-      id: user.id,
-      tenantId: user.tenantId,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      role: user.role.toLowerCase(),
-      status: user.status.toLowerCase(),
-      permissions: user.permissions || [],
-      lastLoginAt: user.lastLoginAt,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt
+      id: user.id as string,
+      tenantId: user.tenantId as string,
+      email: user.email as string,
+      firstName: user.firstName as string,
+      lastName: user.lastName as string,
+      role: (user.role as string).toLowerCase(),
+      status: (user.status as string).toLowerCase(),
+      permissions: (user.permissions as string[]) || [],
+      lastLoginAt: user.lastLoginAt as Date,
+      createdAt: user.createdAt as Date,
+      updatedAt: user.updatedAt as Date
     };
   }
   
   /**
    * Map database tenant invitation to domain model
    */
-  private mapTenantInvitationFromDb(invitation: any): TenantInvitation {
+  private mapTenantInvitationFromDb(invitation: Record<string, unknown>): TenantInvitation {
     return {
-      id: invitation.id,
-      tenantId: invitation.tenantId,
-      email: invitation.email,
-      role: invitation.role.toLowerCase(),
-      invitedBy: invitation.invitedBy,
-      token: invitation.token,
-      expiresAt: invitation.expiresAt,
-      status: invitation.status.toLowerCase(),
-      createdAt: invitation.createdAt
+      id: invitation.id as string,
+      tenantId: invitation.tenantId as string,
+      email: invitation.email as string,
+      role: (invitation.role as string).toLowerCase(),
+      invitedBy: invitation.invitedBy as string,
+      token: invitation.token as string,
+      expiresAt: invitation.expiresAt as Date,
+      status: (invitation.status as string).toLowerCase(),
+      createdAt: invitation.createdAt as Date
     };
   }
 }

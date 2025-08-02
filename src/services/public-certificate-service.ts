@@ -1,7 +1,6 @@
 // Public certificate search service (no authentication required)
 import { DynamoDBDocumentClient, QueryCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { ISOCertificate } from '@/types/certificate';
 import { blockchainService } from './blockchain-service';
 
 const client = new DynamoDBClient({
@@ -145,14 +144,14 @@ export class PublicCertificateService {
         if (result.Items) {
           const exactMatch = result.Items.find(item => item.certificateNumber === certificateNumber);
           if (exactMatch) {
-            return this.mapToPublicCertificate(exactMatch);
+            return this.mapToPublicCertificate(exactMatch as Record<string, unknown>);
           }
         }
         
         return null;
       }
 
-      return this.mapToPublicCertificate(result.Items[0]);
+      return this.mapToPublicCertificate(result.Items[0] as Record<string, unknown>);
 
     } catch (error) {
       console.error('Get certificate by number error:', error);
@@ -181,7 +180,7 @@ export class PublicCertificateService {
         return null;
       }
 
-      return this.mapToPublicCertificate(result.Items[0]);
+      return this.mapToPublicCertificate(result.Items[0] as Record<string, unknown>);
 
     } catch (error) {
       console.error('Certificate verification error:', error);
@@ -198,7 +197,18 @@ export class PublicCertificateService {
       isValid: boolean;
       tezosVerified: boolean;
       etherlinkVerified: boolean;
-      onChainData?: any;
+      onChainData?: {
+        certificateId: string;
+        organizationName: string;
+        standard: string;
+        issuerName: string;
+        issuedDate: Date;
+        expiryDate: Date;
+        status: number;
+        ipfsHash: string;
+        tezosHash?: string;
+        certificationBodyAddress: string;
+      };
       error?: string;
     };
   }> {
@@ -237,6 +247,7 @@ export class PublicCertificateService {
         isValid: blockchainResult.isValid,
         tezosVerified: false, // Tezos verification not implemented in current blockchain service
         etherlinkVerified: blockchainResult.etherlinkVerified || false,
+        error: '',
         ...(blockchainResult.onChainData && { onChainData: blockchainResult.onChainData }),
       };
     } catch (error) {
@@ -285,7 +296,7 @@ export class PublicCertificateService {
         expiredCertificates: 0,
         standards: {} as { [key: string]: number },
         countries: {} as { [key: string]: number },
-        recentCertificates: [] as any[],
+        recentCertificates: [] as Record<string, unknown>[],
       };
 
       certificates.forEach(cert => {
@@ -330,7 +341,7 @@ export class PublicCertificateService {
         .map(([country, count]) => ({ country, count }));
 
       const recentCertificates = stats.recentCertificates
-        .sort((a, b) => new Date(b.issuedDate).getTime() - new Date(a.issuedDate).getTime())
+        .sort((a: Record<string, unknown>, b: Record<string, unknown>) => new Date(b.issuedDate as string).getTime() - new Date(a.issuedDate as string).getTime())
         .slice(0, 10)
         .map(cert => this.mapToPublicCertificate(cert));
 
@@ -391,7 +402,7 @@ export class PublicCertificateService {
     });
 
     const result = await docClient.send(command);
-    const certificates = (result.Items || []).map(item => this.mapToPublicCertificate(item));
+    const certificates = (result.Items || []).map(item => this.mapToPublicCertificate(item as Record<string, unknown>));
 
     return {
       certificates,
@@ -420,7 +431,7 @@ export class PublicCertificateService {
     });
 
     const result = await docClient.send(command);
-    const certificates = (result.Items || []).map(item => this.mapToPublicCertificate(item));
+    const certificates = (result.Items || []).map(item => this.mapToPublicCertificate(item as Record<string, unknown>));
 
     return {
       certificates,
@@ -440,7 +451,7 @@ export class PublicCertificateService {
     });
 
     const result = await docClient.send(command);
-    const certificates = (result.Items || []).map(item => this.mapToPublicCertificate(item));
+    const certificates = (result.Items || []).map(item => this.mapToPublicCertificate(item as Record<string, unknown>));
 
     return {
       certificates,
@@ -488,8 +499,8 @@ export class PublicCertificateService {
   /**
    * Build filter values for DynamoDB
    */
-  private buildFilterValues(query: PublicCertificateSearchQuery, includePublic = false): Record<string, any> {
-    const values: Record<string, any> = {};
+  private buildFilterValues(query: PublicCertificateSearchQuery, includePublic = false): Record<string, string | boolean> {
+    const values: Record<string, string | boolean> = {};
     
     if (includePublic) {
       values[':public'] = true;
@@ -525,47 +536,52 @@ export class PublicCertificateService {
   /**
    * Map DynamoDB item to public certificate (filtered data)
    */
-  private mapToPublicCertificate(item: any): PublicCertificate {
+  private mapToPublicCertificate(item: Record<string, unknown>): PublicCertificate {
     // Convert all Set objects to arrays recursively to fix Next.js serialization
-    const sanitizedItem = this.convertSetsToArrays(item);
+    const sanitizedItem = this.convertSetsToArrays(item) as Record<string, unknown>;
     
     // Simple date handling - DynamoDB stores ISO strings, just return them
-    const expiryDate = new Date(sanitizedItem.expiryDate);
+    const expiryDate = new Date(sanitizedItem.expiryDate as string);
     const now = new Date();
     const daysUntilExpiry = Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 
+    const organization = sanitizedItem.organization as Record<string, unknown>;
+    const standard = sanitizedItem.standard as Record<string, unknown> | undefined;
+    const scope = sanitizedItem.scope as Record<string, unknown> | string;
+    const metadata = sanitizedItem.metadata as Record<string, unknown> | undefined;
+    const blockchain = sanitizedItem.blockchain as Record<string, unknown> | undefined;
+
     return {
-      id: sanitizedItem.id,
-      certificateNumber: sanitizedItem.certificateNumber,
-      issuerName: sanitizedItem.issuerName,
+      id: sanitizedItem.id as string,
+      certificateNumber: sanitizedItem.certificateNumber as string,
+      issuerName: sanitizedItem.issuerName as string,
       organization: {
-        name: sanitizedItem.organization.name,
-        country: sanitizedItem.organization.address?.country || 'Unknown',
-        city: sanitizedItem.organization.address?.city || 'Unknown',
+        name: organization.name as string,
+        country: ((organization.address as Record<string, unknown>)?.country as string) || 'Unknown',
+        city: ((organization.address as Record<string, unknown>)?.city as string) || 'Unknown',
       },
       standard: {
-        number: sanitizedItem.standard?.number || '',
-        title: sanitizedItem.standard?.title || '',
-        category: sanitizedItem.standard?.category || '',
+        number: (standard?.number as string) || '',
+        title: (standard?.title as string) || '',
+        category: (standard?.category as string) || '',
       },
-      issuedDate: sanitizedItem.issuedDate,
-      expiryDate: sanitizedItem.expiryDate,
-      status: sanitizedItem.status,
+      issuedDate: sanitizedItem.issuedDate as string,
+      expiryDate: sanitizedItem.expiryDate as string,
+      status: sanitizedItem.status as string,
       scope: {
-        description: typeof sanitizedItem.scope === 'string' ? sanitizedItem.scope : sanitizedItem.scope?.description || '',
-        sites: Array.isArray(sanitizedItem.scope?.sites)
-          ? sanitizedItem.scope.sites.map((site: any) => ({
-              name: site.name,
-              city: site.address?.city || 'Unknown',
-              country: site.address?.country || 'Unknown',
+        description: typeof scope === 'string' ? scope : ((scope as Record<string, unknown>)?.description as string) || '',
+        sites: Array.isArray((scope as Record<string, unknown>)?.sites)
+          ? ((scope as Record<string, unknown>).sites as Array<Record<string, unknown>>).map((site: Record<string, unknown>) => ({
+              name: site.name as string,
+              city: ((site.address as Record<string, unknown>)?.city as string) || 'Unknown',
+              country: ((site.address as Record<string, unknown>)?.country as string) || 'Unknown',
             }))
           : [],
       },
-      verificationCode: sanitizedItem.metadata?.verificationCode || '',
+      verificationCode: (metadata?.verificationCode as string) || '',
       blockchain: {
-        etherlinkTransactionHash: sanitizedItem.blockchain?.etherlinkTransactionHash,
-        ipfsHash: sanitizedItem.blockchain?.ipfsHash,
-        tezosTransactionHash: sanitizedItem.blockchain?.tezosTransactionHash,
+        etherlinkTransactionHash: blockchain?.etherlinkTransactionHash as string,
+        ipfsHash: blockchain?.ipfsHash as string,
       },
       isExpired: daysUntilExpiry <= 0,
       daysUntilExpiry: Math.max(0, daysUntilExpiry),
@@ -575,7 +591,7 @@ export class PublicCertificateService {
   /**
    * Recursively convert all Set objects to arrays for Next.js serialization
    */
-  private convertSetsToArrays(obj: any): any {
+  private convertSetsToArrays(obj: unknown): unknown {
     if (obj instanceof Set) {
       console.log('🔍 Found Set object, converting to array:', obj);
       return Array.from(obj);
@@ -586,7 +602,7 @@ export class PublicCertificateService {
     }
     
     if (obj && typeof obj === 'object') {
-      const converted: any = {};
+      const converted: Record<string, unknown> = {};
       for (const [key, value] of Object.entries(obj)) {
         converted[key] = this.convertSetsToArrays(value);
       }

@@ -61,7 +61,7 @@ export interface BlockchainTransaction {
   blockchainTxHash?: string;
   gasUsed?: number;
   fee?: string;
-  data: any;
+  data: Record<string, unknown>;
   certificateId?: string;
   errorMessage?: string;
   createdAt: Date;
@@ -71,7 +71,7 @@ export interface BlockchainTransaction {
 
 export interface ContractMethod {
   name: string;
-  parameters: any[];
+  parameters: Record<string, unknown>[];
   gasLimit?: number;
   storageLimit?: number;
 }
@@ -150,7 +150,7 @@ export interface MultiSigOperation {
   id: string;
   tenantId: string;
   type: 'create_certificate' | 'revoke_certificate' | 'update_tenant';
-  data: any;
+  data: Record<string, unknown>;
   requiredSignatures: number;
   signatures: MultiSigSignature[];
   status: 'pending' | 'executed' | 'rejected';
@@ -171,6 +171,6 @@ export interface BlockchainEventLog {
   transactionHash: string;
   blockNumber: number;
   eventName: string;
-  data: any;
+  data: Record<string, unknown>;
   timestamp: Date;
 }
