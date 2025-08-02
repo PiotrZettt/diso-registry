@@ -3,21 +3,30 @@ import { NextRequest, NextResponse } from 'next/server';
 import { dynamoDBTenantService } from '@/services/dynamodb-tenant-service';
 
 export async function GET() {
+  console.log('🔍 Starting DynamoDB debug...');
+  
+  // Check environment variables
+  const envCheck = {
+    AWS_REGION: process.env.AWS_REGION,
+    DEFISO_AWS_REGION: process.env.DEFISO_AWS_REGION,
+    DEFISO_ACCESS_KEY_ID: process.env.DEFISO_ACCESS_KEY_ID ? 'SET' : 'NOT SET',
+    DEFISO_SECRET_ACCESS_KEY: process.env.DEFISO_SECRET_ACCESS_KEY ? 'SET' : 'NOT SET',
+    AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID ? 'SET' : 'NOT SET',
+    AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY ? 'SET' : 'NOT SET',
+    DYNAMODB_TABLE_PREFIX: process.env.DYNAMODB_TABLE_PREFIX,
+    USE_DYNAMODB: process.env.USE_DYNAMODB,
+    NODE_ENV: process.env.NODE_ENV,
+  };
+
+  // Dump all environment variables to debug
+  const allEnvVars = Object.keys(process.env)
+    .filter(key => key.includes('DEFISO') || key.includes('AWS') || key.includes('DYNAMO'))
+    .reduce((obj: any, key) => {
+      obj[key] = key.includes('SECRET') || key.includes('KEY') ? 'REDACTED' : process.env[key];
+      return obj;
+    }, {});
+
   try {
-    console.log('🔍 Starting DynamoDB debug...');
-    
-    // Check environment variables
-    const envCheck = {
-      AWS_REGION: process.env.AWS_REGION,
-      DEFISO_AWS_REGION: process.env.DEFISO_AWS_REGION,
-      DEFISO_ACCESS_KEY_ID: process.env.DEFISO_ACCESS_KEY_ID ? 'SET' : 'NOT SET',
-      DEFISO_SECRET_ACCESS_KEY: process.env.DEFISO_SECRET_ACCESS_KEY ? 'SET' : 'NOT SET',
-      AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID ? 'SET' : 'NOT SET',
-      AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY ? 'SET' : 'NOT SET',
-      DYNAMODB_TABLE_PREFIX: process.env.DYNAMODB_TABLE_PREFIX,
-      USE_DYNAMODB: process.env.USE_DYNAMODB,
-      NODE_ENV: process.env.NODE_ENV,
-    };
     
     console.log('🔧 Environment variables:', envCheck);
     
@@ -80,17 +89,8 @@ export async function GET() {
       success: false,
       error: errorMessage,
       timestamp: new Date().toISOString(),
-      environment: {
-        AWS_REGION: process.env.AWS_REGION,
-        DEFISO_AWS_REGION: process.env.DEFISO_AWS_REGION,
-        DEFISO_ACCESS_KEY_ID: process.env.DEFISO_ACCESS_KEY_ID ? 'SET' : 'NOT SET',
-        DEFISO_SECRET_ACCESS_KEY: process.env.DEFISO_SECRET_ACCESS_KEY ? 'SET' : 'NOT SET',
-        AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID ? 'SET' : 'NOT SET',
-        AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY ? 'SET' : 'NOT SET',
-        DYNAMODB_TABLE_PREFIX: process.env.DYNAMODB_TABLE_PREFIX,
-        USE_DYNAMODB: process.env.USE_DYNAMODB,
-        NODE_ENV: process.env.NODE_ENV,
-      },
+      environment: envCheck,
+      allEnvVars,
       hasCredentials: !!(
         (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) ||
         (process.env.DEFISO_ACCESS_KEY_ID && process.env.DEFISO_SECRET_ACCESS_KEY)
