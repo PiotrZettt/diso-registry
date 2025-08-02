@@ -9,6 +9,8 @@ import pinataSDK from '@pinata/sdk';
 
 const client = new DynamoDBClient({
   region: process.env.AWS_REGION || 'eu-west-2',
+  // In AWS Amplify, credentials are automatically provided by the IAM role
+  // No need to specify credentials explicitly
 });
 
 const docClient = DynamoDBDocumentClient.from(client, {
