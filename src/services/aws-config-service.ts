@@ -123,10 +123,9 @@ class AWSConfigService {
       console.log('🌍 Using region:', region);
       
       // Return minimal config to let AWS SDK use the execution role
+      // Don't specify credentials at all - let AWS SDK auto-discover the Lambda execution role
       return {
         region: region,
-        // Explicitly tell AWS SDK to use the execution role
-        credentials: undefined, // This forces AWS SDK to use the Lambda execution role
       };
     }
 
@@ -163,6 +162,13 @@ class AWSConfigService {
   shouldUseDynamoDB(): boolean {
     const useDynamoDB = process.env.USE_DYNAMODB;
     console.log('🔍 USE_DYNAMODB environment variable:', useDynamoDB);
+    
+    // In Amplify environment, always use DynamoDB since that's our production setup
+    if (this.isAmplifyEnvironment()) {
+      console.log('🚀 Amplify environment detected - forcing DynamoDB usage');
+      return true;
+    }
+    
     return useDynamoDB === 'true';
   }
 }
