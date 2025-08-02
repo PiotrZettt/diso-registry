@@ -31,10 +31,13 @@ class AWSConfigService {
       return this.credentials;
     }
 
+    // Force runtime environment variable access for Amplify SSR
+    const runtimeEnv = typeof window === 'undefined' ? process.env : {};
+    
     // 1. Try DEFISO prefixed environment variables
-    const defisoAccessKey = process.env.DEFISO_ACCESS_KEY_ID;
-    const defisoSecretKey = process.env.DEFISO_SECRET_ACCESS_KEY;
-    const defisoRegion = process.env.DEFISO_AWS_REGION;
+    const defisoAccessKey = runtimeEnv.DEFISO_ACCESS_KEY_ID || process.env.DEFISO_ACCESS_KEY_ID;
+    const defisoSecretKey = runtimeEnv.DEFISO_SECRET_ACCESS_KEY || process.env.DEFISO_SECRET_ACCESS_KEY;
+    const defisoRegion = runtimeEnv.DEFISO_AWS_REGION || process.env.DEFISO_AWS_REGION;
 
     if (defisoAccessKey && defisoSecretKey) {
       console.log('✅ Using DEFISO_ prefixed environment variables');
@@ -47,9 +50,9 @@ class AWSConfigService {
     }
 
     // 2. Try AWS prefixed environment variables
-    const awsAccessKey = process.env.AWS_ACCESS_KEY_ID;
-    const awsSecretKey = process.env.AWS_SECRET_ACCESS_KEY;
-    const awsRegion = process.env.AWS_REGION;
+    const awsAccessKey = runtimeEnv.AWS_ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY_ID;
+    const awsSecretKey = runtimeEnv.AWS_SECRET_ACCESS_KEY || process.env.AWS_SECRET_ACCESS_KEY;
+    const awsRegion = runtimeEnv.AWS_REGION || process.env.AWS_REGION;
 
     if (awsAccessKey && awsSecretKey) {
       console.log('✅ Using AWS_ prefixed environment variables');
@@ -96,6 +99,14 @@ class AWSConfigService {
    * Get DynamoDB client configuration
    */
   async getDynamoDBConfig(): Promise<any> {
+    // For Amplify deployment, skip custom credentials and use IAM role
+    if (process.env.AWS_EXECUTION_ENV || process.env.AWS_LAMBDA_FUNCTION_NAME) {
+      console.log('🚀 Amplify/Lambda detected - using IAM role');
+      return {
+        region: process.env.AWS_REGION || process.env.DEFISO_AWS_REGION || 'eu-west-2',
+      };
+    }
+
     const credentials = await this.getCredentials();
     
     const config: any = {
