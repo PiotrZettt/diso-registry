@@ -1,0 +1,40 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:PutItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:UpdateItem"
+      ],
+      "Resource": [
+        "arn:aws:dynamodb:*:*:table/defiso-certificates",
+        "arn:aws:dynamodb:*:*:table/defiso-certificates/index/*",
+        "arn:aws:dynamodb:*:*:table/defiso-users",
+        "arn:aws:dynamodb:*:*:table/defiso-users/index/*",
+        "arn:aws:dynamodb:*:*:table/defiso-blockchain-transactions",
+        "arn:aws:dynamodb:*:*:table/defiso-blockchain-transactions/index/*",
+        "arn:aws:dynamodb:*:*:table/defiso-tenants",
+        "arn:aws:dynamodb:*:*:table/defiso-tenants/index/*",
+        "arn:aws:dynamodb:*:*:table/defiso-audit-logs",
+        "arn:aws:dynamodb:*:*:table/defiso-audit-logs/index/*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:ListTables"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

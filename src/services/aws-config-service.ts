@@ -19,11 +19,24 @@ class AWSConfigService {
   }
 
   /**
+   * Detect if we're running in Amplify environment
+   */
+  private isAmplifyEnvironment(): boolean {
+    return !!(
+      process.env.AWS_EXECUTION_ENV ||
+      process.env.AWS_LAMBDA_FUNCTION_NAME ||
+      process.env._AWS_XRAY_TRACE_ID ||
+      process.env.AWS_LAMBDA_RUNTIME_API
+    );
+  }
+
+  /**
    * Get AWS credentials from multiple sources in order:
-   * 1. Environment variables (DEFISO_ prefixed)
-   * 2. Environment variables (AWS_ prefixed) 
-   * 3. SSM Parameter Store
-   * 4. IAM role (default AWS SDK behavior)
+   * 1. Amplify/Lambda - use IAM role (no explicit credentials)
+   * 2. Environment variables (DEFISO_ prefixed)
+   * 3. Environment variables (AWS_ prefixed) 
+   * 4. SSM Parameter Store
+   * 5. IAM role (default AWS SDK behavior)
    */
   async getCredentials(): Promise<AWSCredentials | null> {
     // Try to get from cache first
@@ -31,13 +44,16 @@ class AWSConfigService {
       return this.credentials;
     }
 
-    // Force runtime environment variable access for Amplify SSR
-    const runtimeEnv = typeof window === 'undefined' ? process.env : {};
-    
-    // 1. Try DEFISO prefixed environment variables
-    const defisoAccessKey = runtimeEnv.DEFISO_ACCESS_KEY_ID || process.env.DEFISO_ACCESS_KEY_ID;
-    const defisoSecretKey = runtimeEnv.DEFISO_SECRET_ACCESS_KEY || process.env.DEFISO_SECRET_ACCESS_KEY;
-    const defisoRegion = runtimeEnv.DEFISO_AWS_REGION || process.env.DEFISO_AWS_REGION;
+    // 1. If in Amplify/Lambda, skip environment variables and use IAM role
+    if (this.isAmplifyEnvironment()) {
+      console.log('🚀 Amplify/Lambda environment detected - using IAM role credentials');
+      return null; // Let AWS SDK use IAM role
+    }
+
+    // 2. Try DEFISO prefixed environment variables (local development)
+    const defisoAccessKey = process.env.DEFISO_ACCESS_KEY_ID;
+    const defisoSecretKey = process.env.DEFISO_SECRET_ACCESS_KEY;
+    const defisoRegion = process.env.DEFISO_AWS_REGION;
 
     if (defisoAccessKey && defisoSecretKey) {
       console.log('✅ Using DEFISO_ prefixed environment variables');
@@ -49,10 +65,10 @@ class AWSConfigService {
       return this.credentials;
     }
 
-    // 2. Try AWS prefixed environment variables
-    const awsAccessKey = runtimeEnv.AWS_ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY_ID;
-    const awsSecretKey = runtimeEnv.AWS_SECRET_ACCESS_KEY || process.env.AWS_SECRET_ACCESS_KEY;
-    const awsRegion = runtimeEnv.AWS_REGION || process.env.AWS_REGION;
+    // 3. Try AWS prefixed environment variables (local development)
+    const awsAccessKey = process.env.AWS_ACCESS_KEY_ID;
+    const awsSecretKey = process.env.AWS_SECRET_ACCESS_KEY;
+    const awsRegion = process.env.AWS_REGION;
 
     if (awsAccessKey && awsSecretKey) {
       console.log('✅ Using AWS_ prefixed environment variables');
@@ -64,7 +80,7 @@ class AWSConfigService {
       return this.credentials;
     }
 
-    // 3. Try SSM Parameter Store
+    // 4. Try SSM Parameter Store (fallback for environments with IAM access)
     try {
       console.log('🔍 Trying SSM Parameter Store...');
       const accessKeyParam = await this.ssmClient?.send(new GetParameterCommand({
@@ -90,7 +106,7 @@ class AWSConfigService {
       console.log('⚠️ SSM Parameter Store not available:', error instanceof Error ? error.message : 'Unknown error');
     }
 
-    // 4. Return null to use default IAM role
+    // 5. Return null to use default IAM role
     console.log('⚠️ No explicit credentials found, will use IAM role');
     return null;
   }
@@ -99,14 +115,15 @@ class AWSConfigService {
    * Get DynamoDB client configuration
    */
   async getDynamoDBConfig(): Promise<any> {
-    // For Amplify deployment, skip custom credentials and use IAM role
-    if (process.env.AWS_EXECUTION_ENV || process.env.AWS_LAMBDA_FUNCTION_NAME) {
-      console.log('🚀 Amplify/Lambda detected - using IAM role');
+    // For Amplify/Lambda environment, use IAM role (no explicit credentials)
+    if (this.isAmplifyEnvironment()) {
+      console.log('🚀 Amplify/Lambda environment - using IAM role for DynamoDB');
       return {
-        region: process.env.AWS_REGION || process.env.DEFISO_AWS_REGION || 'eu-west-2',
+        region: process.env.AWS_REGION || 'eu-west-2',
       };
     }
 
+    // For local development, try to get explicit credentials
     const credentials = await this.getCredentials();
     
     const config: any = {
@@ -114,10 +131,13 @@ class AWSConfigService {
     };
 
     if (credentials) {
+      console.log('🔑 Using explicit credentials for DynamoDB');
       config.credentials = {
         accessKeyId: credentials.accessKeyId,
         secretAccessKey: credentials.secretAccessKey,
       };
+    } else {
+      console.log('🔒 Using default AWS credentials chain for DynamoDB');
     }
 
     return config;
