@@ -1,0 +1,203 @@
+service: defiso-api
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: eu-west-2
+  stage: ${opt:stage, 'dev'}
+  environment:
+    DYNAMODB_TABLE_PREFIX: defiso-${self:provider.stage}
+    JWT_SECRET: ${env:JWT_SECRET, 'your-secret-key-change-in-production'}
+    AWS_REGION: ${self:provider.region}
+    # Blockchain configuration (optional)
+    ETHERLINK_RPC_URL: ${env:ETHERLINK_RPC_URL, 'https://node.ghostnet.etherlink.com'}
+    ETHERLINK_PRIVATE_KEY: ${env:ETHERLINK_PRIVATE_KEY, ''}
+    ETHERLINK_CONTRACT_ADDRESS: ${env:ETHERLINK_CONTRACT_ADDRESS, ''}
+    PINATA_API_KEY: ${env:PINATA_API_KEY, ''}
+    PINATA_SECRET_KEY: ${env:PINATA_SECRET_KEY, ''}
+  
+  # IAM role for Lambda functions - uses AWS managed execution role
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource:
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/defiso-${self:provider.stage}-users"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/defiso-${self:provider.stage}-users/index/*"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/defiso-${self:provider.stage}-certificates"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/defiso-${self:provider.stage}-certificates/index/*"
+        - Effect: Allow
+          Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource: "arn:aws:logs:${self:provider.region}:*:*"
+
+functions:
+  auth:
+    handler: lambda/auth/handler.handler
+    package:
+      patterns:
+        - lambda/auth/**
+    events:
+      - http:
+          path: /auth/{proxy+}
+          method: ANY
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - Authorization
+            allowCredentials: false
+      - http:
+          path: /auth
+          method: ANY
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - Authorization
+            allowCredentials: false
+
+  certificates:
+    handler: lambda/certificates/handler.handler
+    package:
+      patterns:
+        - lambda/certificates/**
+    events:
+      - http:
+          path: /certificates/{proxy+}
+          method: ANY
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - Authorization
+            allowCredentials: false
+      - http:
+          path: /certificates
+          method: ANY
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - Authorization
+            allowCredentials: false
+
+  public:
+    handler: lambda/public/handler.handler
+    package:
+      patterns:
+        - lambda/public/**
+    events:
+      - http:
+          path: /public/{proxy+}
+          method: ANY
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+            allowCredentials: false
+
+resources:
+  Resources:
+    # Users table
+    UsersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: defiso-${self:provider.stage}-users
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: PK
+            AttributeType: S
+          - AttributeName: SK
+            AttributeType: S
+          - AttributeName: GSI1PK
+            AttributeType: S
+          - AttributeName: GSI1SK
+            AttributeType: S
+        KeySchema:
+          - AttributeName: PK
+            KeyType: HASH
+          - AttributeName: SK
+            KeyType: RANGE
+        GlobalSecondaryIndexes:
+          - IndexName: GSI1
+            KeySchema:
+              - AttributeName: GSI1PK
+                KeyType: HASH
+              - AttributeName: GSI1SK
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+
+    # Certificates table
+    CertificatesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: defiso-${self:provider.stage}-certificates
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: PK
+            AttributeType: S
+          - AttributeName: SK
+            AttributeType: S
+          - AttributeName: GSI1PK
+            AttributeType: S
+          - AttributeName: GSI1SK
+            AttributeType: S
+          - AttributeName: GSI2PK
+            AttributeType: S
+          - AttributeName: GSI2SK
+            AttributeType: S
+          - AttributeName: GSI3PK
+            AttributeType: S
+          - AttributeName: GSI3SK
+            AttributeType: S
+        KeySchema:
+          - AttributeName: PK
+            KeyType: HASH
+          - AttributeName: SK
+            KeyType: RANGE
+        GlobalSecondaryIndexes:
+          - IndexName: GSI1
+            KeySchema:
+              - AttributeName: GSI1PK
+                KeyType: HASH
+              - AttributeName: GSI1SK
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+          - IndexName: GSI2
+            KeySchema:
+              - AttributeName: GSI2PK
+                KeyType: HASH
+              - AttributeName: GSI2SK
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+          - IndexName: GSI3
+            KeySchema:
+              - AttributeName: GSI3PK
+                KeyType: HASH
+              - AttributeName: GSI3SK
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+
+plugins:
+  - serverless-offline
+
+custom:
+  serverless-offline:
+    httpPort: 3001
+    noPrependStageInUrl: true
