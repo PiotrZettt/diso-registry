@@ -94,7 +94,7 @@ export class PinataService {
     certificateData: CertificateDocument,
     options: {
       pinName?: string;
-      metadata?: { [key: string]: any };
+      metadata?: { [key: string]: unknown };
     } = {}
   ): Promise<PinataUploadResult> {
     if (!this.initialized) {
@@ -151,7 +151,7 @@ export class PinataService {
     ipfsHash: string,
     options: {
       pinName?: string;
-      metadata?: { [key: string]: any };
+      metadata?: { [key: string]: unknown };
     } = {}
   ): Promise<PinataUploadResult> {
     if (!this.initialized) {
@@ -195,7 +195,7 @@ export class PinataService {
     limit?: number;
   } = {}): Promise<{
     success: boolean;
-    pins?: any[];
+    pins?: Array<Record<string, unknown>>;
     error?: string;
   }> {
     if (!this.initialized) {
@@ -203,7 +203,7 @@ export class PinataService {
     }
 
     try {
-      const pinataFilters: any = {
+      const pinataFilters: Record<string, unknown> = {
         status: 'pinned',
         pageLimit: filters.limit || 100,
       };
@@ -292,8 +292,8 @@ export class PinataService {
    * Create a properly formatted certificate document for IPFS upload
    */
   createCertificateDocument(
-    certificateData: any,
-    certificationBodyInfo: any,
+    certificateData: Record<string, unknown>,
+    certificationBodyInfo: Record<string, unknown>,
     blockchainHashes: { tezosHash?: string; etherlinkHash?: string } = {}
   ): CertificateDocument {
     return {

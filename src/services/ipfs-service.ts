@@ -1,8 +1,8 @@
 // IPFS Service for certificate document verification and retrieval
 export interface IPFSVerificationResult {
   success: boolean;
-  data?: any;
-  error?: string;
+  data?: Record<string, unknown>;
+  _error?: string;
   gateway?: string;
   contentType?: string;
 }
@@ -28,7 +28,7 @@ export class IPFSService {
     if (!ipfsHash || !this.isValidIPFSHash(ipfsHash)) {
       return {
         success: false,
-        error: 'Invalid IPFS hash format',
+        _error: 'Invalid IPFS hash format',
       };
     }
 
@@ -47,26 +47,26 @@ export class IPFSService {
           console.log(`Successfully retrieved from ${gateway.name}`);
           return result;
         }
-      } catch (error) {
-        console.warn(`Failed to retrieve from ${gateway.name}:`, error);
+      } catch (__error) {
+        console.warn(`Failed to retrieve from ${gateway.name}:`, _error);
         continue;
       }
     }
 
     return {
       success: false,
-      error: 'Failed to retrieve certificate from all IPFS gateways',
+      _error: 'Failed to retrieve certificate from all IPFS gateways',
     };
   }
 
   /**
    * Verify certificate integrity by comparing with blockchain data
    */
-  async verifyCertificateIntegrity(ipfsHash: string, expectedData: any): Promise<{
+  async verifyCertificateIntegrity(ipfsHash: string, expectedData: Record<string, unknown>): Promise<{
     valid: boolean;
     matches: boolean;
-    retrievedData?: any;
-    error?: string;
+    retrievedData?: Record<string, unknown>;
+    _error?: string;
   }> {
     try {
       const retrievalResult = await this.retrieveCertificate(ipfsHash);
@@ -75,7 +75,7 @@ export class IPFSService {
         return {
           valid: false,
           matches: false,
-          error: retrievalResult.error,
+          _error: retrievalResult._error,
         };
       }
 
@@ -89,11 +89,11 @@ export class IPFSService {
         matches,
         retrievedData,
       };
-    } catch (error) {
+    } catch (__error) {
       return {
         valid: false,
         matches: false,
-        error: error instanceof Error ? error.message : 'Verification failed',
+        _error: _error instanceof Error ? _error.message : 'Verification failed',
       };
     }
   }
@@ -128,7 +128,7 @@ export class IPFSService {
           status: response.ok ? (responseTime > 5000 ? 'slow' : 'online') : 'offline',
           responseTime,
         });
-      } catch (error) {
+      } catch (__error) {
         const responseTime = Date.now() - startTime;
         results.push({
           gateway: gateway.name,
@@ -169,9 +169,9 @@ export class IPFSService {
         gateway: gateway.name,
         contentType,
       };
-    } catch (error) {
+    } catch (__error) {
       clearTimeout(timeoutId);
-      throw error;
+      throw _error;
     }
   }
 
@@ -216,7 +216,7 @@ export class IPFSService {
     };
   }
 
-  private compareCertificateData(retrieved: any, expected: any): boolean {
+  private compareCertificateData(retrieved: Record<string, unknown>, expected: Record<string, unknown>): boolean {
     try {
       // Compare key fields that should match
       const retrievedCert = retrieved.certificateData || retrieved;
@@ -227,8 +227,8 @@ export class IPFSService {
         retrievedCert.organization?.name === expected.organization?.name &&
         retrievedCert.standard?.number === expected.standard?.number
       );
-    } catch (error) {
-      console.warn('Error comparing certificate data:', error);
+    } catch (__error) {
+      console.warn('Error comparing certificate data:', _error);
       return false;
     }
   }

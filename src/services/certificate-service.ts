@@ -1,10 +1,9 @@
 // Certificate service layer for DynamoDB operations
-import { DynamoDBDocumentClient, GetCommand, PutCommand, QueryCommand, UpdateCommand, DeleteCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand, QueryCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { ISOCertificate, CertificateStatus, ISOCategory } from '@/types/certificate';
+import { ISOCertificate, CertificateStatus } from '@/types/certificate';
 import { generateCertificateNumber } from '@/lib/utils/certificate-utils';
 import { blockchainService } from './blockchain-service';
-import { BlockchainTransactionService } from './blockchain-transaction-service';
 import pinataSDK from '@pinata/sdk';
 
 const client = new DynamoDBClient({
@@ -20,7 +19,7 @@ const TABLE_PREFIX = process.env.DYNAMODB_TABLE_PREFIX || 'defiso';
 const CERTIFICATES_TABLE = `${TABLE_PREFIX}-certificates`;
 
 export class CertificateService {
-  private pinata: any;
+  private pinata: typeof pinataSDK | null = null;
 
   constructor() {
     // Initialize Pinata for IPFS uploads
@@ -666,7 +665,7 @@ export class CertificateService {
     }
     
     if (obj && typeof obj === 'object') {
-      const converted: any = {};
+      const converted: Record<string, unknown> = {};
       for (const [key, value] of Object.entries(obj)) {
         converted[key] = this.convertSetsToArrays(value);
       }
@@ -687,7 +686,7 @@ export class CertificateService {
       return obj.map(item => this.convertDatesToStrings(item));
     }
     if (obj && typeof obj === 'object') {
-      const converted: any = {};
+      const converted: Record<string, unknown> = {};
       for (const key in obj) {
         converted[key] = this.convertDatesToStrings(obj[key]);
       }
