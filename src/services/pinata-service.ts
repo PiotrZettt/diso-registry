@@ -211,7 +211,7 @@ export class PinataService {
       // Add metadata filters
       if (filters.certificateId) {
         pinataFilters.metadata = {
-          ...pinataFilters.metadata,
+          ...(pinataFilters.metadata as Record<string, unknown> || {}),
           keyvalues: {
             certificateId: {
               value: filters.certificateId,
@@ -292,35 +292,35 @@ export class PinataService {
    * Create a properly formatted certificate document for IPFS upload
    */
   createCertificateDocument(
-    certificateData: Record<string, unknown>,
-    certificationBodyInfo: Record<string, unknown>,
+    certificateData: any,
+    certificationBodyInfo: any,
     blockchainHashes: { tezosHash?: string; etherlinkHash?: string } = {}
   ): CertificateDocument {
     return {
       certificateData: {
-        id: certificateData.id,
-        certificateNumber: certificateData.certificateNumber,
+        id: certificateData.id || '',
+        certificateNumber: certificateData.certificateNumber || '',
         organization: {
-          name: certificateData.organizationName,
-          address: certificateData.organizationAddress,
-          country: certificateData.organizationCountry,
+          name: certificateData.organization?.name || '',
+          address: certificateData.organization?.address || '',
+          country: certificateData.organization?.country || '',
         },
         standard: {
-          number: certificateData.standard,
-          title: this.getStandardTitle(certificateData.standard),
+          number: certificateData.standard?.number || '',
+          title: certificateData.standard?.title || '',
         },
-        issuedDate: certificateData.issuedDate,
-        expiryDate: certificateData.expiryDate,
+        issuedDate: certificateData.issuedDate || new Date().toISOString(),
+        expiryDate: certificateData.expiryDate || new Date().toISOString(),
         scope: certificateData.scope || 'General scope',
         status: 'valid',
         certificationBodyInfo: {
-          name: certificationBodyInfo.name,
-          accreditationNumber: certificationBodyInfo.accreditationNumber,
-          address: certificationBodyInfo.address,
+          name: certificationBodyInfo.name || '',
+          accreditationNumber: certificationBodyInfo.accreditationNumber || '',
+          address: certificationBodyInfo.address || '',
         },
       },
       metadata: {
-        issuer: certificationBodyInfo.name,
+        issuer: certificationBodyInfo.name || '',
         timestamp: new Date().toISOString(),
         version: '1.0',
         blockchain: blockchainHashes,

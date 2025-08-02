@@ -38,11 +38,11 @@ export class TenantService {
         domain: data.domain,
         subdomain: data.subdomain,
         plan: (data.plan?.toUpperCase() as 'BASIC' | 'PROFESSIONAL' | 'ENTERPRISE') || 'BASIC',
-        branding: data.branding || {
+        branding: data.branding as any || {
           primaryColor: '#3B82F6',
           secondaryColor: '#64748B'
         },
-        settings: data.settings || {
+        settings: data.settings as any || {
           allowPublicSearch: true,
           requireEmailVerification: true,
           enableApiAccess: false,
@@ -207,7 +207,7 @@ export class TenantService {
         email: data.email,
         firstName: data.firstName,
         lastName: data.lastName,
-        role: data.role.toUpperCase() as 'TENANT_ADMIN' | 'ADMIN' | 'USER',
+        role: data.role.toUpperCase() as any,
         status: (data.status?.toUpperCase() as 'ACTIVE' | 'PENDING' | 'INACTIVE') || 'PENDING',
         permissions: data.permissions || []
       }
@@ -261,7 +261,7 @@ export class TenantService {
       data: {
         tenantId: data.tenantId,
         email: data.email,
-        role: data.role.toUpperCase() as 'TENANT_ADMIN' | 'ADMIN' | 'USER',
+        role: data.role.toUpperCase() as any,
         invitedBy: data.invitedBy,
         token,
         expiresAt
@@ -334,12 +334,12 @@ export class TenantService {
       slug: tenant.slug as string,
       domain: tenant.domain as string,
       subdomain: tenant.subdomain as string,
-      status: (tenant.status as string).toLowerCase(),
-      plan: (tenant.plan as string).toLowerCase(),
-      branding: (tenant.branding as Record<string, unknown>) || {},
-      settings: (tenant.settings as Record<string, unknown>) || {},
-      blockchain: (tenant.blockchain as Record<string, unknown>) || {},
-      contactInfo: (tenant.contactInfo as Record<string, unknown>) || {},
+      status: (tenant.status as string).toLowerCase() as any,
+      plan: (tenant.plan as string).toLowerCase() as any,
+      branding: tenant.branding as any || {},
+      settings: tenant.settings as any || {},
+      blockchain: tenant.blockchain as any || {},
+      contactInfo: tenant.contactInfo as any || {},
       createdAt: tenant.createdAt as Date,
       updatedAt: tenant.updatedAt as Date
     };
@@ -355,13 +355,21 @@ export class TenantService {
       email: user.email as string,
       firstName: user.firstName as string,
       lastName: user.lastName as string,
-      role: (user.role as string).toLowerCase(),
-      status: (user.status as string).toLowerCase(),
+      role: (user.role as string).toLowerCase() as any,
+      status: (user.status as string).toLowerCase() as any,
       permissions: (user.permissions as string[]) || [],
+      emailVerified: (user.emailVerified as boolean) || false,
+      settings: (user.settings as any) || {
+        notifications: {
+          email: true,
+          certificateExpiry: true,
+          auditReminders: false,
+        },
+      },
       lastLoginAt: user.lastLoginAt as Date,
       createdAt: user.createdAt as Date,
       updatedAt: user.updatedAt as Date
-    };
+    } as TenantUser;
   }
   
   /**
@@ -372,11 +380,11 @@ export class TenantService {
       id: invitation.id as string,
       tenantId: invitation.tenantId as string,
       email: invitation.email as string,
-      role: (invitation.role as string).toLowerCase(),
+      role: (invitation.role as string).toLowerCase() as any,
       invitedBy: invitation.invitedBy as string,
       token: invitation.token as string,
       expiresAt: invitation.expiresAt as Date,
-      status: (invitation.status as string).toLowerCase(),
+      status: (invitation.status as string).toLowerCase() as any,
       createdAt: invitation.createdAt as Date
     };
   }

@@ -4,6 +4,7 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { ISOCertificate, CertificateStatus } from '@/types/certificate';
 import { generateCertificateNumber } from '@/lib/utils/certificate-utils';
 import { blockchainService } from './blockchain-service';
+import { BlockchainTransactionService } from './blockchain-transaction-service';
 import pinataSDK from '@pinata/sdk';
 
 const client = new DynamoDBClient({
@@ -27,7 +28,7 @@ export class CertificateService {
     const secretKey = process.env.PINATA_SECRET_KEY;
     
     if (apiKey && secretKey) {
-      this.pinata = new pinataSDK(apiKey, secretKey);
+      this.pinata = new (pinataSDK as any)(apiKey, secretKey);
       console.log('✅ Pinata service initialized for IPFS uploads');
     } else {
       console.warn('⚠️ Pinata credentials not found - IPFS uploads disabled');
@@ -52,9 +53,9 @@ export class CertificateService {
             name: certificate.organization.name,
             address: certificate.organization.address,
             website: certificate.organization.website,
-            contactPerson: certificate.organization.contactPerson,
-            contactEmail: certificate.organization.contactEmail,
-            contactPhone: certificate.organization.contactPhone,
+            contactPerson: (certificate.organization as any).contactPerson || 'N/A',
+            contactEmail: certificate.organization.email || 'N/A',
+            contactPhone: certificate.organization.phone || 'N/A',
           },
           standard: {
             number: certificate.standard.number,
@@ -98,7 +99,7 @@ export class CertificateService {
         },
       };
 
-      const result = await this.pinata.pinJSONToIPFS(certificateDocument, options);
+      const result = await (this.pinata as any).pinJSONToIPFS(certificateDocument, options);
       console.log('✅ Certificate uploaded to IPFS:', result.IpfsHash);
 
       return result.IpfsHash;

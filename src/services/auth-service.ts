@@ -491,8 +491,8 @@ export class AuthService {
         email: user.email,
         role: user.role,
       },
-      JWT_SECRET as jwt.Secret,
-      { expiresIn: JWT_EXPIRES_IN }
+      JWT_SECRET,
+      { expiresIn: JWT_EXPIRES_IN } as jwt.SignOptions
     );
   }
 

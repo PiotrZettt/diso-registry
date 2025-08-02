@@ -48,7 +48,7 @@ export class IPFSService {
           return result;
         }
       } catch (__error) {
-        console.warn(`Failed to retrieve from ${gateway.name}:`, _error);
+        console.warn(`Failed to retrieve from ${gateway.name}:`, __error);
         continue;
       }
     }
@@ -82,7 +82,7 @@ export class IPFSService {
       const retrievedData = retrievalResult.data;
       
       // Compare key fields to verify integrity
-      const matches = this.compareCertificateData(retrievedData, expectedData);
+      const matches = retrievedData ? this.compareCertificateData(retrievedData, expectedData) : false;
       
       return {
         valid: true,
@@ -107,7 +107,11 @@ export class IPFSService {
     responseTime: number;
   }>> {
     const testHash = 'QmYjtig7VJQ6XsnUjqqJvj7QaMcCAwtrgNdahSiFofrE7o'; // Well-known test hash
-    const results = [];
+    const results: Array<{
+      gateway: string;
+      status: 'online' | 'offline' | 'slow';
+      responseTime: number;
+    }> = [];
 
     for (const gateway of IPFSService.GATEWAYS) {
       const startTime = Date.now();
@@ -171,7 +175,7 @@ export class IPFSService {
       };
     } catch (__error) {
       clearTimeout(timeoutId);
-      throw _error;
+      throw __error;
     }
   }
 
@@ -219,16 +223,17 @@ export class IPFSService {
   private compareCertificateData(retrieved: Record<string, unknown>, expected: Record<string, unknown>): boolean {
     try {
       // Compare key fields that should match
-      const retrievedCert = retrieved.certificateData || retrieved;
+      const retrievedCert = (retrieved.certificateData || retrieved) as Record<string, unknown>;
+      const expectedCert = expected as Record<string, unknown>;
       
       return (
-        retrievedCert.id === expected.id &&
-        retrievedCert.certificateNumber === expected.certificateNumber &&
-        retrievedCert.organization?.name === expected.organization?.name &&
-        retrievedCert.standard?.number === expected.standard?.number
+        retrievedCert.id === expectedCert.id &&
+        retrievedCert.certificateNumber === expectedCert.certificateNumber &&
+        (retrievedCert.organization as Record<string, unknown>)?.name === (expectedCert.organization as Record<string, unknown>)?.name &&
+        (retrievedCert.standard as Record<string, unknown>)?.number === (expectedCert.standard as Record<string, unknown>)?.number
       );
     } catch (__error) {
-      console.warn('Error comparing certificate data:', _error);
+      console.warn('Error comparing certificate data:', __error);
       return false;
     }
   }
