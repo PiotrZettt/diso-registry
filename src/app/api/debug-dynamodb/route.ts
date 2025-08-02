@@ -42,13 +42,38 @@ export async function GET() {
     // Try to list tables to test basic connection
     const { DynamoDBClient, ListTablesCommand } = await import('@aws-sdk/client-dynamodb');
     
-    const client = new DynamoDBClient(config);
+    // Test 1: Default IAM role credentials
+    console.log('📡 Testing with default IAM role...');
+    const defaultClient = new DynamoDBClient({
+      region: process.env.AWS_REGION || process.env.DEFISO_AWS_REGION || 'eu-west-2',
+    });
+    
+    try {
+      const defaultResult = await defaultClient.send(new ListTablesCommand({}));
+      console.log('✅ Default IAM role works! Tables found:', defaultResult.TableNames?.length || 0);
+      
+      return NextResponse.json({
+        success: true,
+        message: 'DynamoDB connection successful with default IAM role',
+        timestamp: new Date().toISOString(),
+        tablesFound: defaultResult.TableNames?.length || 0,
+        tableNames: defaultResult.TableNames?.filter(name => name.includes('defiso')) || [],
+        environment: envCheck,
+        allEnvVars,
+        credentialsSource: 'IAM Role',
+      });
+    } catch (defaultError) {
+      console.log('❌ Default IAM role failed:', defaultError);
+    }
+    
+    // Test 2: AWS Config Service (SSM fallback)
+    console.log('🔍 Testing AWS Config Service with SSM...');
+    const awsConfig = await awsConfigService.getDynamoDBConfig();
+    const configClient = new DynamoDBClient(awsConfig);
+    
     const command = new ListTablesCommand({});
-    
-    console.log('📡 Attempting to list tables...');
-    const result = await client.send(command);
-    
-    const defisoTables = result.TableNames?.filter(name => name.startsWith('defiso-')) || [];
+    console.log('📡 Attempting to list tables with config service...');
+    const result = await configClient.send(command);    const defisoTables = result.TableNames?.filter(name => name.startsWith('defiso-')) || [];
     
     console.log('✅ Successfully connected to DynamoDB');
     console.log('📊 Tables found:', result.TableNames?.length || 0);
