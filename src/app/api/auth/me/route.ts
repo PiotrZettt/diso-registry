@@ -27,6 +27,24 @@ function convertSetsToArrays(obj: any): any {
 
 export async function GET(request: NextRequest) {
   try {
+    // Check for debug mode
+    const url = new URL(request.url);
+    if (url.searchParams.get('debug') === 'env') {
+      return NextResponse.json({
+        debug: true,
+        environment: {
+          NODE_ENV: process.env.NODE_ENV,
+          AWS_REGION: process.env.AWS_REGION,
+          DEFISO_AWS_REGION: process.env.DEFISO_AWS_REGION,
+          DEFISO_ACCESS_KEY_ID: process.env.DEFISO_ACCESS_KEY_ID ? 'SET' : 'NOT SET',
+          DEFISO_SECRET_ACCESS_KEY: process.env.DEFISO_SECRET_ACCESS_KEY ? 'SET' : 'NOT SET',
+          DYNAMODB_TABLE_PREFIX: process.env.DYNAMODB_TABLE_PREFIX,
+          USE_DYNAMODB: process.env.USE_DYNAMODB,
+          hasCredentials: !!(process.env.DEFISO_ACCESS_KEY_ID && process.env.DEFISO_SECRET_ACCESS_KEY),
+        }
+      });
+    }
+    
     const token = request.cookies.get('auth-token')?.value;
     
     if (!token) {
