@@ -85,7 +85,7 @@ export class AuthServiceAPI {
 
         return {
           success: true,
-          user: this.currentUser,
+          user: this.currentUser || undefined,
           token,
           message: response.data.message || 'Registration successful'
         };
@@ -124,7 +124,7 @@ export class AuthServiceAPI {
 
         return {
           success: true,
-          user: this.currentUser,
+          user: this.currentUser || undefined,
           token,
           message: response.data.message || 'Login successful'
         };
