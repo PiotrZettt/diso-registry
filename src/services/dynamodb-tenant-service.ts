@@ -20,13 +20,20 @@ import {
 import { Tenant, TenantUser, TenantInvitation } from '@/types/tenant';
 import { ISOCertificate } from '@/types/certificate';
 import { generateTenantSlug, generateInvitationToken } from '@/lib/utils/tenant-utils';
+import { awsConfigService } from './aws-config-service';
 
+// Configure DynamoDB client using centralized AWS config service
+let client: DynamoDBClient;
+let docClient: DynamoDBDocumentClient;
 
-// Configure DynamoDB client for Lambda/IAM role (no explicit credentials)
-const client = new DynamoDBClient({
-  region: process.env.AWS_REGION || process.env.DEFISO_AWS_REGION || 'eu-west-2',
-});
-const docClient = DynamoDBDocumentClient.from(client);
+async function initializeDynamoDBClient() {
+  if (!client) {
+    const config = await awsConfigService.getDynamoDBConfig();
+    client = new DynamoDBClient(config);
+    docClient = DynamoDBDocumentClient.from(client);
+  }
+  return { client, docClient };
+}
 
 const TABLE_PREFIX = process.env.DYNAMODB_TABLE_PREFIX || 'defiso';
 
@@ -52,7 +59,8 @@ export class DynamoDBTenantService {
     branding?: any;
     settings?: any;
   }): Promise<Tenant> {
-    const id = `tenant_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const { docClient } = await initializeDynamoDBClient();
+    const id = `tenant_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
     const slug = data.slug || generateTenantSlug(data.name);
     
     // Check if slug is available
@@ -117,6 +125,7 @@ export class DynamoDBTenantService {
    * Get tenant by ID
    */
   async getTenantById(id: string): Promise<Tenant | null> {
+    const { docClient } = await initializeDynamoDBClient();
     const result = await docClient.send(new GetCommand({
       TableName: TABLES.TENANTS,
       Key: { id },
@@ -129,6 +138,7 @@ export class DynamoDBTenantService {
    * Get tenant by slug
    */
   async getTenantBySlug(slug: string): Promise<Tenant | null> {
+    const { docClient } = await initializeDynamoDBClient();
     const result = await docClient.send(new DocQueryCommand({
       TableName: TABLES.TENANTS,
       IndexName: 'slug-index',
@@ -147,6 +157,7 @@ export class DynamoDBTenantService {
    * Get tenant by domain
    */
   async getTenantByDomain(domain: string): Promise<Tenant | null> {
+    const { docClient } = await initializeDynamoDBClient();
     const result = await docClient.send(new DocQueryCommand({
       TableName: TABLES.TENANTS,
       IndexName: 'domain-index',
@@ -165,6 +176,7 @@ export class DynamoDBTenantService {
    * Update tenant
    */
   async updateTenant(id: string, data: Partial<Tenant>): Promise<Tenant> {
+    const { docClient } = await initializeDynamoDBClient();
     const updateExpression = [];
     const expressionAttributeNames: Record<string, string> = {};
     const expressionAttributeValues: Record<string, any> = {};
@@ -201,6 +213,7 @@ export class DynamoDBTenantService {
    * Delete tenant
    */
   async deleteTenant(id: string): Promise<void> {
+    const { docClient } = await initializeDynamoDBClient();
     await docClient.send(new DeleteCommand({
       TableName: TABLES.TENANTS,
       Key: { id },
@@ -219,7 +232,8 @@ export class DynamoDBTenantService {
     status?: string;
     permissions?: string[];
   }): Promise<TenantUser> {
-    const id = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const { docClient } = await initializeDynamoDBClient();
+    const id = `user_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
     
     const user: TenantUser = {
       id,
@@ -261,6 +275,7 @@ export class DynamoDBTenantService {
    * Get tenant users
    */
   async getTenantUsers(tenantId: string): Promise<TenantUser[]> {
+    const { docClient } = await initializeDynamoDBClient();
     const result = await docClient.send(new DocQueryCommand({
       TableName: TABLES.USERS,
       IndexName: 'tenant-email-index',
@@ -277,6 +292,7 @@ export class DynamoDBTenantService {
    * Get tenant user by email
    */
   async getTenantUserByEmail(tenantId: string, email: string): Promise<TenantUser | null> {
+    const { docClient } = await initializeDynamoDBClient();
     const result = await docClient.send(new DocQueryCommand({
       TableName: TABLES.USERS,
       IndexName: 'tenant-email-index',
@@ -296,7 +312,8 @@ export class DynamoDBTenantService {
    * Create certificate
    */
   async createCertificate(tenantId: string, data: Partial<ISOCertificate>): Promise<ISOCertificate> {
-    const id = `cert_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const { docClient } = await initializeDynamoDBClient();
+    const id = `cert_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
     
     const certificate: ISOCertificate = {
       id,
@@ -324,6 +341,7 @@ export class DynamoDBTenantService {
    * Get certificates by tenant
    */
   async getCertificatesByTenant(tenantId: string, limit?: number): Promise<ISOCertificate[]> {
+    const { docClient } = await initializeDynamoDBClient();
     const result = await docClient.send(new DocQueryCommand({
       TableName: TABLES.CERTIFICATES,
       IndexName: 'tenant-certificate-index',
@@ -341,6 +359,7 @@ export class DynamoDBTenantService {
    * Get certificate by number (public search)
    */
   async getCertificateByNumber(certificateNumber: string): Promise<ISOCertificate | null> {
+    const { docClient } = await initializeDynamoDBClient();
     const result = await docClient.send(new DocQueryCommand({
       TableName: TABLES.CERTIFICATES,
       IndexName: 'public-certificate-index',
@@ -372,6 +391,7 @@ export class DynamoDBTenantService {
   }> {
     const { tenantId, issuedByUserId, status, page = 1, limit = 10 } = params;
     
+    const { docClient } = await initializeDynamoDBClient();
     try {
       // Use Scan operation to find certificates by issuedByUserId
       // This is less efficient than Query but works for filtering by user
@@ -431,6 +451,7 @@ export class DynamoDBTenantService {
     status?: string;
     limit?: number;
   }): Promise<ISOCertificate[]> {
+    const { docClient } = await initializeDynamoDBClient();
     const { tenantId, organizationName, standard, status, limit } = params;
     
     if (!tenantId) {

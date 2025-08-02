@@ -6,18 +6,23 @@ import { generateCertificateNumber } from '@/lib/utils/certificate-utils';
 import { blockchainService } from './blockchain-service';
 import { BlockchainTransactionService } from './blockchain-transaction-service';
 import pinataSDK from '@pinata/sdk';
+import { awsConfigService } from './aws-config-service';
 
-const client = new DynamoDBClient({
-  region: process.env.AWS_REGION || 'eu-west-2',
-  // In AWS Amplify, credentials are automatically provided by the IAM role
-  // No need to specify credentials explicitly
-});
+let client: DynamoDBClient;
+let docClient: DynamoDBDocumentClient;
 
-const docClient = DynamoDBDocumentClient.from(client, {
-  marshallOptions: {
-    removeUndefinedValues: true,
-  },
-});
+async function initializeDynamoDBClient() {
+  if (!client) {
+    const config = await awsConfigService.getDynamoDBConfig();
+    client = new DynamoDBClient(config);
+    docClient = DynamoDBDocumentClient.from(client, {
+      marshallOptions: {
+        removeUndefinedValues: true,
+      },
+    });
+  }
+  return { client, docClient };
+}
 const TABLE_PREFIX = process.env.DYNAMODB_TABLE_PREFIX || 'defiso';
 const CERTIFICATES_TABLE = `${TABLE_PREFIX}-certificates`;
 
@@ -114,6 +119,7 @@ export class CertificateService {
    * Create a new certificate with blockchain integration
    */
   async createCertificate(tenantId: string, certificateData: Omit<ISOCertificate, 'id' | 'tenantId' | 'certificateNumber' | 'createdAt' | 'updatedAt'>): Promise<ISOCertificate> {
+    const { docClient } = await initializeDynamoDBClient();
     const certificateNumber = generateCertificateNumber(certificateData.standard.number);
     const id = `${tenantId}#${certificateNumber}`;
     
@@ -271,6 +277,7 @@ export class CertificateService {
    * Get certificate by tenant and certificate number
    */
   async getCertificate(tenantId: string, certificateNumber: string): Promise<ISOCertificate | null> {
+    const { docClient } = await initializeDynamoDBClient();
     const command = new GetCommand({
       TableName: CERTIFICATES_TABLE,
       Key: {
@@ -290,6 +297,7 @@ export class CertificateService {
     certificates: ISOCertificate[];
     lastEvaluatedKey?: string;
   }> {
+    const { docClient } = await initializeDynamoDBClient();
     const command = new QueryCommand({
       TableName: CERTIFICATES_TABLE,
       KeyConditionExpression: 'PK = :pk',
@@ -312,6 +320,7 @@ export class CertificateService {
    * Get certificates by organization
    */
   async getCertificatesByOrganization(tenantId: string, organizationName: string, limit = 50): Promise<ISOCertificate[]> {
+    const { docClient } = await initializeDynamoDBClient();
     const orgKey = organizationName.toLowerCase().replace(/\s+/g, '-');
     
     const command = new QueryCommand({
@@ -334,6 +343,7 @@ export class CertificateService {
    * Get certificates by ISO standard
    */
   async getCertificatesByStandard(tenantId: string, standardNumber: string, limit = 50): Promise<ISOCertificate[]> {
+    const { docClient } = await initializeDynamoDBClient();
     const command = new QueryCommand({
       TableName: CERTIFICATES_TABLE,
       IndexName: 'GSI2',
@@ -354,6 +364,7 @@ export class CertificateService {
    * Get expiring certificates
    */
   async getExpiringCertificates(tenantId: string, daysFromNow = 90): Promise<ISOCertificate[]> {
+    const { docClient } = await initializeDynamoDBClient();
     const expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + daysFromNow);
 
@@ -382,6 +393,7 @@ export class CertificateService {
    * Update certificate status with blockchain integration
    */
   async updateCertificateStatus(tenantId: string, certificateNumber: string, status: CertificateStatus, reason?: string): Promise<ISOCertificate | null> {
+    const { docClient } = await initializeDynamoDBClient();
     const certificateId = `${tenantId}#${certificateNumber}`;
     
     try {
@@ -540,6 +552,7 @@ export class CertificateService {
    * Delete certificate
    */
   async deleteCertificate(tenantId: string, certificateNumber: string): Promise<boolean> {
+    const { docClient } = await initializeDynamoDBClient();
     const command = new DeleteCommand({
       TableName: CERTIFICATES_TABLE,
       Key: {
@@ -569,6 +582,7 @@ export class CertificateService {
     revoked: number;
     byStandard: Record<string, number>;
   }> {
+    const { docClient } = await initializeDynamoDBClient();
     const command = new QueryCommand({
       TableName: CERTIFICATES_TABLE,
       KeyConditionExpression: 'PK = :pk',

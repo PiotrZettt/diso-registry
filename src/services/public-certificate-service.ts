@@ -2,16 +2,23 @@
 import { DynamoDBDocumentClient, QueryCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { blockchainService } from './blockchain-service';
+import { awsConfigService } from './aws-config-service';
 
-const client = new DynamoDBClient({
-  region: process.env.AWS_REGION || 'eu-west-2',
-});
+let client: DynamoDBClient;
+let docClient: DynamoDBDocumentClient;
 
-const docClient = DynamoDBDocumentClient.from(client, {
-  marshallOptions: {
-    removeUndefinedValues: true,
-  },
-});
+async function initializeDynamoDBClient() {
+  if (!client) {
+    const config = await awsConfigService.getDynamoDBConfig();
+    client = new DynamoDBClient(config);
+    docClient = DynamoDBDocumentClient.from(client, {
+      marshallOptions: {
+        removeUndefinedValues: true,
+      },
+    });
+  }
+  return { client, docClient };
+}
 const TABLE_PREFIX = process.env.DYNAMODB_TABLE_PREFIX || 'defiso';
 const CERTIFICATES_TABLE = `${TABLE_PREFIX}-certificates`;
 
@@ -112,6 +119,7 @@ export class PublicCertificateService {
    * Get certificate by number for public verification
    */
   async getCertificateByNumber(certificateNumber: string): Promise<PublicCertificate | null> {
+    const { docClient } = await initializeDynamoDBClient();
     try {
       // First try exact match, then fallback to contains for debugging
       let command = new ScanCommand({
@@ -163,6 +171,7 @@ export class PublicCertificateService {
    * Verify certificate using verification code
    */
   async verifyCertificate(verificationCode: string): Promise<PublicCertificate | null> {
+    const { docClient } = await initializeDynamoDBClient();
     try {
       const command = new ScanCommand({
         TableName: CERTIFICATES_TABLE,
@@ -272,6 +281,7 @@ export class PublicCertificateService {
     topCountries: Array<{ country: string; count: number }>;
     recentCertificates: PublicCertificate[];
   }> {
+    const { docClient } = await initializeDynamoDBClient();
     try {
       // Get recent certificates (last 30 days)
       const thirtyDaysAgo = new Date();
@@ -443,6 +453,7 @@ export class PublicCertificateService {
    * General search with scan
    */
   private async generalSearch(query: PublicCertificateSearchQuery, limit: number): Promise<PublicCertificateSearchResult> {
+    const { docClient } = await initializeDynamoDBClient();
     const command = new ScanCommand({
       TableName: CERTIFICATES_TABLE,
       FilterExpression: this.buildFilterExpression(query, true),

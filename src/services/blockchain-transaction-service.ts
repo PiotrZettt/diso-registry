@@ -2,17 +2,24 @@
 import { DynamoDBDocumentClient, PutCommand, QueryCommand, GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { BlockchainTransaction, TransactionStatus, BlockchainNetwork } from '@/types/blockchain';
+import { awsConfigService } from './aws-config-service';
 
-const client = new DynamoDBClient({
-  region: process.env.AWS_REGION || 'eu-west-2',
-});
+let client: DynamoDBClient;
+let docClient: DynamoDBDocumentClient;
 
-const docClient = DynamoDBDocumentClient.from(client, {
-  marshallOptions: {
-    removeUndefinedValues: true,
-    convertClassInstanceToMap: true, // Handle Date objects
-  },
-});
+async function initializeDynamoDBClient() {
+  if (!client) {
+    const config = await awsConfigService.getDynamoDBConfig();
+    client = new DynamoDBClient(config);
+    docClient = DynamoDBDocumentClient.from(client, {
+      marshallOptions: {
+        removeUndefinedValues: true,
+        convertClassInstanceToMap: true, // Handle Date objects
+      },
+    });
+  }
+  return { client, docClient };
+}
 const TABLE_PREFIX = process.env.DYNAMODB_TABLE_PREFIX || 'defiso';
 const TRANSACTIONS_TABLE = `${TABLE_PREFIX}-blockchain-transactions`;
 
@@ -21,6 +28,7 @@ export class BlockchainTransactionService {
    * Record a new blockchain transaction
    */
   async recordTransaction(transaction: Omit<BlockchainTransaction, 'id' | 'createdAt' | 'updatedAt'>): Promise<BlockchainTransaction> {
+    const { docClient } = await initializeDynamoDBClient();
     const id = `${transaction.tenantId}#${Date.now()}#${Math.random().toString(36).substring(2)}`;
     
     const fullTransaction: BlockchainTransaction = {
@@ -52,6 +60,7 @@ export class BlockchainTransactionService {
    * Get transaction by ID
    */
   async getTransaction(tenantId: string, transactionId: string): Promise<BlockchainTransaction | null> {
+    const { docClient } = await initializeDynamoDBClient();
     const command = new GetCommand({
       TableName: TRANSACTIONS_TABLE,
       Key: {
@@ -71,6 +80,7 @@ export class BlockchainTransactionService {
     transactions: BlockchainTransaction[];
     lastEvaluatedKey?: string;
   }> {
+    const { docClient } = await initializeDynamoDBClient();
     const command = new QueryCommand({
       TableName: TRANSACTIONS_TABLE,
       KeyConditionExpression: 'PK = :pk',
@@ -94,6 +104,7 @@ export class BlockchainTransactionService {
    * Get transactions by network
    */
   async getTransactionsByNetwork(network: BlockchainNetwork, limit = 50): Promise<BlockchainTransaction[]> {
+    const { docClient } = await initializeDynamoDBClient();
     const command = new QueryCommand({
       TableName: TRANSACTIONS_TABLE,
       IndexName: 'GSI1',
@@ -113,6 +124,7 @@ export class BlockchainTransactionService {
    * Get transactions by status
    */
   async getTransactionsByStatus(status: TransactionStatus, limit = 50): Promise<BlockchainTransaction[]> {
+    const { docClient } = await initializeDynamoDBClient();
     const command = new QueryCommand({
       TableName: TRANSACTIONS_TABLE,
       IndexName: 'GSI2',
@@ -132,6 +144,7 @@ export class BlockchainTransactionService {
    * Get transactions for a certificate
    */
   async getTransactionsForCertificate(tenantId: string, certificateId: string): Promise<BlockchainTransaction[]> {
+    const { docClient } = await initializeDynamoDBClient();
     const command = new QueryCommand({
       TableName: TRANSACTIONS_TABLE,
       KeyConditionExpression: 'PK = :pk',
@@ -205,6 +218,7 @@ export class BlockchainTransactionService {
    * Get pending transactions for processing
    */
   async getPendingTransactions(limit = 100): Promise<BlockchainTransaction[]> {
+    const { docClient } = await initializeDynamoDBClient();
     const command = new QueryCommand({
       TableName: TRANSACTIONS_TABLE,
       IndexName: 'GSI2',
@@ -230,6 +244,7 @@ export class BlockchainTransactionService {
     byNetwork: Record<string, number>;
     byType: Record<string, number>;
   }> {
+    const { docClient } = await initializeDynamoDBClient();
     const command = new QueryCommand({
       TableName: TRANSACTIONS_TABLE,
       KeyConditionExpression: 'PK = :pk',

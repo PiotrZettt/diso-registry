@@ -5,12 +5,19 @@ import { TenantUser, TenantInvitation, UserRole } from '@/types/tenant';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { randomBytes } from 'crypto';
+import { awsConfigService } from './aws-config-service';
 
-const client = new DynamoDBClient({
-  region: process.env.AWS_REGION || 'eu-west-2',
-});
+let client: DynamoDBClient;
+let docClient: DynamoDBDocumentClient;
 
-const docClient = DynamoDBDocumentClient.from(client);
+async function initializeDynamoDBClient() {
+  if (!client) {
+    const config = await awsConfigService.getDynamoDBConfig();
+    client = new DynamoDBClient(config);
+    docClient = DynamoDBDocumentClient.from(client);
+  }
+  return { client, docClient };
+}
 const TABLE_PREFIX = process.env.DYNAMODB_TABLE_PREFIX || 'defiso';
 const USERS_TABLE = `${TABLE_PREFIX}-users`;
 
@@ -43,6 +50,7 @@ export class AuthService {
    * Register a new user
    */
   async register(tenantId: string, userData: RegisterData): Promise<AuthResponse> {
+    const { docClient } = await initializeDynamoDBClient();
     try {
       // Check if user already exists
       const existingUser = await this.getUserByEmail(tenantId, userData.email);
@@ -325,6 +333,7 @@ export class AuthService {
    * Get user by email
    */
   private async getUserByEmail(tenantId: string, email: string): Promise<TenantUser | null> {
+    const { docClient } = await initializeDynamoDBClient();
     const command = new QueryCommand({
       TableName: USERS_TABLE,
       IndexName: 'GSI1',
@@ -347,6 +356,7 @@ export class AuthService {
    * Get user by email with password (for login)
    */
   private async getUserByEmailWithPassword(tenantId: string, email: string): Promise<(TenantUser & { password: string }) | null> {
+    const { docClient } = await initializeDynamoDBClient();
     const command = new QueryCommand({
       TableName: USERS_TABLE,
       IndexName: 'GSI1',
@@ -371,6 +381,7 @@ export class AuthService {
    * Get user by ID
    */
   private async getUserById(tenantId: string, userId: string): Promise<TenantUser | null> {
+    const { docClient } = await initializeDynamoDBClient();
     const command = new GetCommand({
       TableName: USERS_TABLE,
       Key: {
@@ -391,6 +402,7 @@ export class AuthService {
    * Get invitation by token
    */
   private async getInvitationByToken(tenantId: string, token: string): Promise<TenantInvitation | null> {
+    const { docClient } = await initializeDynamoDBClient();
     const command = new QueryCommand({
       TableName: USERS_TABLE,
       KeyConditionExpression: 'PK = :pk',
@@ -414,6 +426,7 @@ export class AuthService {
    * Get pending invitation by email
    */
   private async getPendingInvitationByEmail(tenantId: string, email: string): Promise<TenantInvitation | null> {
+    const { docClient } = await initializeDynamoDBClient();
     const command = new QueryCommand({
       TableName: USERS_TABLE,
       IndexName: 'GSI1',
@@ -441,6 +454,7 @@ export class AuthService {
    * Update invitation status
    */
   private async updateInvitationStatus(tenantId: string, invitationId: string, status: 'pending' | 'accepted' | 'rejected' | 'expired'): Promise<void> {
+    const { docClient } = await initializeDynamoDBClient();
     const command = new UpdateCommand({
       TableName: USERS_TABLE,
       Key: {
@@ -464,6 +478,7 @@ export class AuthService {
    * Update last login time
    */
   private async updateLastLogin(tenantId: string, userId: string): Promise<void> {
+    const { docClient } = await initializeDynamoDBClient();
     const command = new UpdateCommand({
       TableName: USERS_TABLE,
       Key: {

@@ -4,21 +4,28 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+import { awsConfigService } from './aws-config-service';
 
-const client = new DynamoDBClient({
-  region: process.env.AWS_REGION || 'eu-west-2',
-  maxAttempts: 3,
-  retryMode: 'adaptive',
-  // Force credentials to be undefined so AWS SDK uses IAM role
-  credentials: undefined
-});
+let client: DynamoDBClient;
+let docClient: DynamoDBDocumentClient;
 
-const docClient = DynamoDBDocumentClient.from(client, {
-  marshallOptions: {
-    removeUndefinedValues: true,
-    convertClassInstanceToMap: true,
-  },
-});
+async function initializeDynamoDBClient() {
+  if (!client) {
+    const config = await awsConfigService.getDynamoDBConfig();
+    client = new DynamoDBClient({
+      ...config,
+      maxAttempts: 3,
+      retryMode: 'adaptive',
+    });
+    docClient = DynamoDBDocumentClient.from(client, {
+      marshallOptions: {
+        removeUndefinedValues: true,
+        convertClassInstanceToMap: true,
+      },
+    });
+  }
+  return { client, docClient };
+}
 const TABLE_PREFIX = process.env.DYNAMODB_TABLE_PREFIX || 'defiso';
 const USERS_TABLE = `${TABLE_PREFIX}-users`;
 
@@ -125,6 +132,7 @@ export class CertificationBodyAuthService {
    * Register a new certification body
    */
   async register(data: RegisterData): Promise<AuthResponse> {
+    const { docClient } = await initializeDynamoDBClient();
     try {
       // Check if certification body already exists
       const existing = await this.getCertificationBodyByEmail(data.email);
@@ -297,6 +305,7 @@ export class CertificationBodyAuthService {
    * Get certification body by email
    */
   private async getCertificationBodyByEmail(email: string): Promise<CertificationBody | null> {
+    const { docClient } = await initializeDynamoDBClient();
     const command = new QueryCommand({
       TableName: USERS_TABLE,
       IndexName: 'GSI1',
@@ -319,6 +328,7 @@ export class CertificationBodyAuthService {
    * Get certification body by accreditation number
    */
   private async getCertificationBodyByAccreditation(accreditationNumber: string): Promise<CertificationBody | null> {
+    const { docClient } = await initializeDynamoDBClient();
     // Use scan operation to find by accreditation number since we only have GSI1
     const command = new QueryCommand({
       TableName: USERS_TABLE,
@@ -342,6 +352,7 @@ export class CertificationBodyAuthService {
    * Get certification body by email with password
    */
   private async getCertificationBodyByEmailWithPassword(email: string): Promise<(CertificationBody & { password: string }) | null> {
+    const { docClient } = await initializeDynamoDBClient();
     const command = new QueryCommand({
       TableName: USERS_TABLE,
       IndexName: 'GSI1',
@@ -366,6 +377,7 @@ export class CertificationBodyAuthService {
    * Get certification body by ID
    */
   private async getCertificationBodyById(id: string): Promise<CertificationBody | null> {
+    const { docClient } = await initializeDynamoDBClient();
     const command = new GetCommand({
       TableName: USERS_TABLE,
       Key: {
@@ -386,6 +398,7 @@ export class CertificationBodyAuthService {
    * Update last login time
    */
   private async updateLastLogin(id: string): Promise<void> {
+    const { docClient } = await initializeDynamoDBClient();
     const command = new UpdateCommand({
       TableName: USERS_TABLE,
       Key: {
