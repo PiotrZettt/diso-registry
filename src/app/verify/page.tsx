@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import VerificationPayment from '@/components/payments/VerificationPayment';
@@ -64,7 +64,7 @@ interface VerificationResult {
   };
 }
 
-export default function VerifyPage() {
+function VerifyPageContent() {
   const { user } = useAuth();
   // Default branding for single-tenant app
   const primaryColor = '#2563eb'; // Blue
@@ -612,5 +612,20 @@ export default function VerifyPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function VerifyPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading verification page...</p>
+        </div>
+      </div>
+    }>
+      <VerifyPageContent />
+    </Suspense>
   );
 }

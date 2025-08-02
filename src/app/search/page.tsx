@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { PublicCertificate } from '@/services/public-certificate-service';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -15,7 +15,7 @@ interface SearchFilters {
   status: 'valid' | 'expired' | 'suspended' | 'revoked' | '';
 }
 
-export default function SearchPage() {
+function SearchPageContent() {
   // Default branding for single-tenant app
   const primaryColor = '#2563eb'; // Blue
   const secondaryColor = '#1e40af';
@@ -303,5 +303,20 @@ export default function SearchPage() {
         )}
       </main>
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading search page...</p>
+        </div>
+      </div>
+    }>
+      <SearchPageContent />
+    </Suspense>
   );
 }
