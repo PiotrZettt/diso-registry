@@ -1,6 +1,7 @@
 // Test DynamoDB connection
 import { NextRequest, NextResponse } from 'next/server';
 import { dynamoDBTenantService } from '@/services/dynamodb-tenant-service';
+import { awsConfigService } from '@/services/aws-config-service';
 
 export async function GET() {
   console.log('🔍 Starting DynamoDB debug...');
@@ -30,29 +31,18 @@ export async function GET() {
     
     console.log('🔧 Environment variables:', envCheck);
     
+    // Test the new AWS config service
+    console.log('🔍 Testing AWS Config Service...');
+    const credentials = await awsConfigService.getCredentials();
+    const config = await awsConfigService.getDynamoDBConfig();
+    
+    console.log('📋 Credentials result:', credentials ? 'FOUND' : 'NOT FOUND');
+    console.log('🔧 DynamoDB config:', { region: config.region, hasCredentials: !!config.credentials });
+    
     // Try to list tables to test basic connection
     const { DynamoDBClient, ListTablesCommand } = await import('@aws-sdk/client-dynamodb');
     
-    const clientConfig: any = {
-      region: process.env.AWS_REGION || process.env.DEFISO_AWS_REGION || 'eu-west-2',
-    };
-
-    const accessKeyId = process.env.AWS_ACCESS_KEY_ID || process.env.DEFISO_ACCESS_KEY_ID;
-    const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY || process.env.DEFISO_SECRET_ACCESS_KEY;
-
-    if (accessKeyId && secretAccessKey) {
-      clientConfig.credentials = {
-        accessKeyId,
-        secretAccessKey,
-      };
-      console.log('✅ Using explicit credentials');
-    } else {
-      console.log('⚠️ No explicit credentials found, relying on IAM role');
-    }
-
-    console.log('🌍 Client config region:', clientConfig.region);
-
-    const client = new DynamoDBClient(clientConfig);
+    const client = new DynamoDBClient(config);
     const command = new ListTablesCommand({});
     
     console.log('📡 Attempting to list tables...');
@@ -69,11 +59,13 @@ export async function GET() {
       message: 'DynamoDB connection successful',
       timestamp: new Date().toISOString(),
       environment: envCheck,
-      region: clientConfig.region,
-      hasCredentials: !!(accessKeyId && secretAccessKey),
+      allEnvVars,
+      region: config.region,
+      hasCredentials: !!config.credentials,
+      credentialsSource: credentials ? 'SSM/Env' : 'IAM Role',
       tableCount: result.TableNames?.length || 0,
       defisoTables: defisoTables,
-      tablePrefix: process.env.DYNAMODB_TABLE_PREFIX || 'defiso'
+      tablePrefix: awsConfigService.getTablePrefix()
     });
   } catch (error) {
     console.error('❌ DynamoDB connection test failed:', error);
