@@ -1,0 +1,15 @@
+{
+  "success": true,
+  "timestamp": "2025-07-29T20:21:06.451Z",
+  "certificateId": "REAL-BLOCKCHAIN-TEST-1753820465451",
+  "transactionHash": "0xd3c26968e97513ada50853d02c1f80de19945682f3ec2638c5fbde1be51e518b",
+  "blockNumber": 20806348,
+  "contractAddress": "0xe24eb7b84ae0f141c5f104f98f267c200207808d",
+  "explorerUrl": "https://testnet.explorer.etherlink.com/tx/0xd3c26968e97513ada50853d02c1f80de19945682f3ec2638c5fbde1be51e518b",
+  "certificateData": {
+    "organization": "Real Blockchain Corp",
+    "standard": "9001",
+    "ipfsHash": "QmTestRealBlockchainHash12345",
+    "isValid": true
+  }
+}

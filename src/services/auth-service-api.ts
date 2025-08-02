@@ -87,7 +87,7 @@ export class AuthServiceAPI {
           success: true,
           user: this.currentUser || undefined,
           token,
-          message: response.data.message || 'Registration successful'
+          message: (response.data as any).message || 'Registration successful'
         };
       }
 
@@ -126,7 +126,7 @@ export class AuthServiceAPI {
           success: true,
           user: this.currentUser || undefined,
           token,
-          message: response.data.message || 'Login successful'
+          message: (response.data as any).message || 'Login successful'
         };
       }
 
@@ -154,8 +154,8 @@ export class AuthServiceAPI {
 
       const response = await apiClient.getMe();
       
-      if (response.success && response.data?.user) {
-        this.currentUser = this.mapResponseToUser(response.data.user as any);
+      if (response.success && (response.data as any)?.user) {
+        this.currentUser = this.mapResponseToUser((response.data as any).user);
         return this.currentUser;
       }
 

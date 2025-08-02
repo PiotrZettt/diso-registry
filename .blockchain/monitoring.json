@@ -1,0 +1,32 @@
+{
+  "alerts": {
+    "lowBalance": {
+      "threshold": "1.0",
+      "enabled": true,
+      "recipients": ["admin@defiso.com"]
+    },
+    "failedTransactions": {
+      "threshold": 5,
+      "timeWindow": "1h",
+      "enabled": true
+    },
+    "highGasPrices": {
+      "threshold": "0.10",
+      "enabled": true
+    }
+  },
+  "healthChecks": {
+    "tezosRpc": {
+      "url": "",
+      "interval": "5m"
+    },
+    "etherlinkRpc": {
+      "url": "",
+      "interval": "5m"
+    },
+    "ipfsGateway": {
+      "url": "",
+      "interval": "10m"
+    }
+  }
+}

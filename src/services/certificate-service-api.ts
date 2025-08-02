@@ -82,8 +82,8 @@ export class CertificateServiceAPI {
       if (response.success && response.data) {
         return {
           success: true,
-          certificate: this.mapResponseToCertificate(response.data.certificate),
-          message: response.data.message || 'Certificate created successfully'
+          certificate: this.mapResponseToCertificate((response.data as any).certificate),
+          message: (response.data as any).message || 'Certificate created successfully'
         };
       }
 
@@ -110,8 +110,8 @@ export class CertificateServiceAPI {
       if (response.success && response.data) {
         return {
           success: true,
-          certificates: response.data.certificates?.map((cert: any) => this.mapResponseToCertificate(cert)) || [],
-          lastEvaluatedKey: response.data.lastEvaluatedKey
+          certificates: (response.data as any).certificates?.map((cert: any) => this.mapResponseToCertificate(cert)) || [],
+          lastEvaluatedKey: (response.data as any).lastEvaluatedKey
         };
       }
 
@@ -138,7 +138,7 @@ export class CertificateServiceAPI {
       if (response.success && response.data) {
         return {
           success: true,
-          certificate: this.mapResponseToCertificate(response.data.certificate)
+          certificate: this.mapResponseToCertificate((response.data as any).certificate)
         };
       }
 
@@ -169,8 +169,8 @@ export class CertificateServiceAPI {
       if (response.success && response.data) {
         return {
           success: true,
-          certificate: this.mapResponseToCertificate(response.data.certificate),
-          message: response.data.message || 'Certificate updated successfully'
+          certificate: this.mapResponseToCertificate((response.data as any).certificate),
+          message: (response.data as any).message || 'Certificate updated successfully'
         };
       }
 
@@ -197,7 +197,7 @@ export class CertificateServiceAPI {
       if (response.success) {
         return {
           success: true,
-          message: response.data?.message || 'Certificate deleted successfully'
+          message: (response.data as any)?.message || 'Certificate deleted successfully'
         };
       }
 

@@ -1,0 +1,10 @@
+{
+  "network": "etherlink-testnet",
+  "address": "0xe24eb7b84ae0f141c5f104f98f267c200207808d",
+  "transactionHash": "0xb5605934787afa7afc1aee449fd11b857d6265c93af6d2b177cfda6338eef1b5",
+  "deployedAt": "2025-07-26T08:13:19.064Z",
+  "deployerAddress": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+  "rpcUrl": "https://node.ghostnet.etherlink.com",
+  "contractType": "iso-certificate-registry",
+  "status": "deployed"
+}

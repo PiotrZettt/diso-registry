@@ -1,0 +1,10 @@
+{
+  "network": "ghostnet",
+  "address": "KT1KkLLL7ExzeAvu7J3B4vU5TPP9rbUm85MG",
+  "operationHash": "0x98431b6d3d40bfc997fcd6ac076d3b359b0503c536927c0ddf362deca2e5f974",
+  "deployedAt": "2025-07-26T08:13:19.063Z",
+  "deployerAddress": "tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb",
+  "rpcUrl": "https://rpc.ghostnet.teztnets.xyz",
+  "contractType": "iso-certificate-registry",
+  "status": "deployed"
+}

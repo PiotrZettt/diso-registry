@@ -1,0 +1,349 @@
+{
+  "deployedAt": "2025-07-30T18:14:05.814Z",
+  "etherlink": {
+    "address": "0x42F5232Fa4d57D3a821c4BdE034208760Bdfe224",
+    "transactionHash": "0x1f8bcb3a2a038e4a0bd253902375afded54ea90f0805f6a21dc05c7de5153e11",
+    "network": "etherlink-testnet",
+    "abi": [
+      {
+        "inputs": [],
+        "stateMutability": "nonpayable",
+        "type": "constructor"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "string",
+            "name": "certificateId",
+            "type": "string"
+          },
+          {
+            "indexed": false,
+            "internalType": "string",
+            "name": "organizationName",
+            "type": "string"
+          },
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "certificationBody",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "issuedDate",
+            "type": "uint256"
+          }
+        ],
+        "name": "CertificateIssued",
+        "type": "event"
+      },
+      {
+        "inputs": [],
+        "name": "admin",
+        "outputs": [
+          {
+            "internalType": "address",
+            "name": "",
+            "type": "address"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "bodyAddress",
+            "type": "address"
+          },
+          {
+            "internalType": "bool",
+            "name": "approved",
+            "type": "bool"
+          }
+        ],
+        "name": "approveCertificationBody",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "",
+            "type": "address"
+          }
+        ],
+        "name": "approvedBodies",
+        "outputs": [
+          {
+            "internalType": "bool",
+            "name": "",
+            "type": "bool"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "string",
+            "name": "",
+            "type": "string"
+          }
+        ],
+        "name": "certificates",
+        "outputs": [
+          {
+            "internalType": "string",
+            "name": "certificateId",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "organizationName",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "standard",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "issuerName",
+            "type": "string"
+          },
+          {
+            "internalType": "uint256",
+            "name": "issuedDate",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "expiryDate",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint8",
+            "name": "status",
+            "type": "uint8"
+          },
+          {
+            "internalType": "string",
+            "name": "ipfsHash",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "tezosTransactionHash",
+            "type": "string"
+          },
+          {
+            "internalType": "address",
+            "name": "certificationBodyAddress",
+            "type": "address"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "string",
+            "name": "certificateId",
+            "type": "string"
+          }
+        ],
+        "name": "getCertificate",
+        "outputs": [
+          {
+            "components": [
+              {
+                "internalType": "string",
+                "name": "certificateId",
+                "type": "string"
+              },
+              {
+                "internalType": "string",
+                "name": "organizationName",
+                "type": "string"
+              },
+              {
+                "internalType": "string",
+                "name": "standard",
+                "type": "string"
+              },
+              {
+                "internalType": "string",
+                "name": "issuerName",
+                "type": "string"
+              },
+              {
+                "internalType": "uint256",
+                "name": "issuedDate",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "expiryDate",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint8",
+                "name": "status",
+                "type": "uint8"
+              },
+              {
+                "internalType": "string",
+                "name": "ipfsHash",
+                "type": "string"
+              },
+              {
+                "internalType": "string",
+                "name": "tezosTransactionHash",
+                "type": "string"
+              },
+              {
+                "internalType": "address",
+                "name": "certificationBodyAddress",
+                "type": "address"
+              }
+            ],
+            "internalType": "struct SimpleCertificateRegistry.Certificate",
+            "name": "",
+            "type": "tuple"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "string",
+            "name": "certificateId",
+            "type": "string"
+          }
+        ],
+        "name": "isCertificateValid",
+        "outputs": [
+          {
+            "internalType": "bool",
+            "name": "",
+            "type": "bool"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "string",
+            "name": "certificateId",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "organizationName",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "standard",
+            "type": "string"
+          },
+          {
+            "internalType": "uint256",
+            "name": "expiryDate",
+            "type": "uint256"
+          },
+          {
+            "internalType": "string",
+            "name": "ipfsHash",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "tezosTransactionHash",
+            "type": "string"
+          }
+        ],
+        "name": "issueCertificate",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "string",
+            "name": "",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "",
+            "type": "string"
+          }
+        ],
+        "name": "registerCertificationBody",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "totalCertificates",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "string",
+            "name": "",
+            "type": "string"
+          }
+        ],
+        "name": "usedCertificateIds",
+        "outputs": [
+          {
+            "internalType": "bool",
+            "name": "",
+            "type": "bool"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      }
+    ]
+  },
+  "tezos": {
+    "address": "KT1REEb5VqrYzd2zRvs64RcDLVrXSBf6xFdX",
+    "transactionHash": "mock_tezos_hash",
+    "network": "tezos-ghostnet",
+    "mock": true
+  }
+}

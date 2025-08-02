@@ -1,0 +1,17 @@
+{
+  "tezos": {
+    "network": "ghostnet",
+    "address": "KT1nh0auki8kal",
+    "deployedAt": "2025-07-25T19:27:23.040Z"
+  },
+  "etherlink": {
+    "network": "testnet",
+    "address": "0x0b480f66f2f81",
+    "deployedAt": "2025-07-25T19:27:23.041Z"
+  },
+  "ipfs": {
+    "gateway": "https://gateway.pinata.cloud",
+    "configured": false
+  },
+  "deployedAt": "2025-07-25T19:27:23.041Z"
+}

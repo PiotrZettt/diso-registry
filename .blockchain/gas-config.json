@@ -1,0 +1,19 @@
+{
+  "tezos": {
+    "estimatedCostPerCert": "0.01",
+    "gasLimitDefault": 100000,
+    "storageLimitDefault": 1000,
+    "currency": "XTZ"
+  },
+  "etherlink": {
+    "estimatedCostPerCert": "0.005",
+    "gasLimitDefault": 200000,
+    "gasPriceDefault": "1000000000",
+    "currency": "ETH"
+  },
+  "bulkDiscounts": {
+    "10-50": 0.1,
+    "51-100": 0.2,
+    "100+": 0.3
+  }
+}
