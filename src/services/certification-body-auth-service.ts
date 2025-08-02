@@ -7,6 +7,9 @@ import crypto from 'crypto';
 
 const client = new DynamoDBClient({
   region: process.env.AWS_REGION || 'eu-west-2',
+  // Force region for AWS Amplify environment
+  maxAttempts: 3,
+  retryMode: 'adaptive'
 });
 
 const docClient = DynamoDBDocumentClient.from(client, {
