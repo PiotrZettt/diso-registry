@@ -73,7 +73,7 @@ export class AuthServiceAPI {
       const response = await apiClient.register(userData);
       
       if (response.success && response.data) {
-        const { user, token } = response.data;
+        const { user, token } = response.data as any;
         
         if (token) {
           this.setAuthToken(token);
@@ -112,7 +112,7 @@ export class AuthServiceAPI {
       const response = await apiClient.login(loginData);
       
       if (response.success && response.data) {
-        const { user, token } = response.data;
+        const { user, token } = response.data as any;
         
         if (token) {
           this.setAuthToken(token);
@@ -155,7 +155,7 @@ export class AuthServiceAPI {
       const response = await apiClient.getMe();
       
       if (response.success && response.data?.user) {
-        this.currentUser = this.mapResponseToUser(response.data.user);
+        this.currentUser = this.mapResponseToUser(response.data.user as any);
         return this.currentUser;
       }
 
