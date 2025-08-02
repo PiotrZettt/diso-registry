@@ -75,3 +75,20 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Pulsating outline animation for Certification Body button */
+@keyframes pulse-outline {
+  0%, 100% {
+    border-color: hsl(var(--input));
+    box-shadow: 0 0 0 0 rgba(75, 85, 99, 0.2);
+  }
+  50% {
+    border-color: rgba(156, 163, 175, 0.8);
+    box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.2);
+  }
+}
+
+.animate-pulse-outline {
+  animation: pulse-outline 5s infinite;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}

@@ -3,6 +3,8 @@
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { ColorizedDisoRegistry } from '@/components/ui/ColorizedDiso';
+import { Button } from '@/components/ui/button';
 
 interface DashboardStats {
   totalCertificates: number;
@@ -74,16 +76,9 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="h-8 w-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                  <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-              </div>
               <div className="ml-4">
                 <h1 className="text-xl font-semibold text-card-foreground">
-                  dISO Registry
+<ColorizedDisoRegistry />
                 </h1>
                 <p className="text-sm text-muted-foreground">Dashboard</p>
               </div>
@@ -125,7 +120,7 @@ export default function DashboardPage() {
                 Welcome back, {user.firstName}!
               </h2>
               <p className="text-muted-foreground">
-                You're signed in as a <span className="font-medium capitalize">{user.role?.replace('_', ' ')}</span> for the dISO Registry.
+                You're signed in as a <span className="font-medium capitalize">{user.role?.replace('_', ' ')}</span> for the <ColorizedDisoRegistry />.
               </p>
             </div>
           </div>
@@ -137,17 +132,18 @@ export default function DashboardPage() {
                 Quick Actions
               </h3>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <button
+                <Button
+                  variant="outline"
                   onClick={() => router.push('/certificates/issue')}
-                  className="relative block w-full rounded-lg border-2 border-dashed border-border p-6 text-center hover:border-muted-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full h-auto p-6 flex flex-col items-center"
                 >
-                  <svg className="mx-auto h-8 w-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="h-8 w-8 text-muted-foreground mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  <span className="mt-2 block text-sm font-medium text-card-foreground">
+                  <span className="text-sm font-medium text-card-foreground">
                     Issue New Certificate
                   </span>
-                </button>
+                </Button>
                 
                 <button
                   onClick={() => router.push('/certificates')}

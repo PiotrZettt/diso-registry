@@ -166,11 +166,11 @@ export function useTenantBranding() {
   };
   
   const getBrandLogo = () => {
-    return tenant?.branding?.logo || '/logo-default.svg';
+    return tenant?.branding?.logo || '/diso-logo-simple.svg';
   };
   
   const getBrandFavicon = () => {
-    return tenant?.branding?.favicon || '/favicon.ico';
+    return tenant?.branding?.favicon || '/diso-logo-simple.svg';
   };
   
   const getCustomCss = () => {

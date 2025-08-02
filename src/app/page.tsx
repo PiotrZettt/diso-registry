@@ -6,6 +6,7 @@ import { PublicCertificate } from '@/services/public-certificate-service';
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/Logo";
 import { useAuth } from '@/hooks/useAuth';
+import { ColorizedDisoRegistry } from '@/components/ui/ColorizedDiso';
 
 interface SearchFilters {
   certificateNumber: string;
@@ -27,7 +28,6 @@ export default function Home() {
   // Default branding for single-tenant app
   const primaryColor = '#2563eb'; // Blue
   const secondaryColor = '#1e40af';
-  const logo = '/logo.svg';
   
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
@@ -82,7 +82,7 @@ export default function Home() {
             <Logo variant="full" size="small" />
             <nav className="flex space-x-8">
               <Link href={user ? "/dashboard" : "/login"}>
-                <Button variant="outline">Certification Body</Button>
+                <Button variant="outline" className="animate-pulse-outline">Certification Body</Button>
               </Link>
             </nav>
           </div>
@@ -96,7 +96,7 @@ export default function Home() {
             <Logo variant="simple" size="large" />
           </div>
           <h1 className="text-4xl font-bold text-card-foreground sm:text-5xl md:text-6xl">
-            dISO Registry
+            <ColorizedDisoRegistry />
           </h1>
           <p className="mt-3 max-w-md mx-auto text-base text-muted-foreground sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
             Search and verify ISO certificates on the Etherlink blockchain. Secure, transparent, and trustworthy certification verification.
@@ -247,7 +247,7 @@ export default function Home() {
         </div>
 
           {/* Quick Actions */}
-          <div className="mt-16 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-16 grid grid-cols-1 gap-6 sm:grid-cols-2 mx-1/2">
             <Link href="/verify" className="bg-card border shadow-sm rounded-lg hover:shadow-md transition-shadow">
               <div className="p-6">
                 <div className="flex items-center">
@@ -255,7 +255,7 @@ export default function Home() {
                     <div className="h-8 w-8 rounded-md bg-blue-600 flex items-center justify-center">
                       <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
+                        </svg>
                     </div>
                   </div>
                   <div className="ml-5 w-0 flex-1">
@@ -295,37 +295,13 @@ export default function Home() {
                 </div>
               </div>
             </Link>
-
-            <Link href="/login" className="bg-card border shadow-sm rounded-lg hover:shadow-md transition-shadow">
-              <div className="p-6">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="h-8 w-8 rounded-md bg-blue-600 flex items-center justify-center">
-                      <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C20.832 18.477 19.246 18 17.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                      </svg>
-                    </div>
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-muted-foreground truncate">
-                        Certification Body
-                      </dt>
-                      <dd className="text-lg font-medium text-card-foreground">
-                        Login to issue certificates
-                      </dd>
-                    </dl>
-                  </div>
-                </div>
-              </div>
-            </Link>
           </div>
 
           {/* Features Section */}
           <div id="features" className="mt-24">
             <div className="text-center mb-16">
               <h2 className="text-3xl font-bold text-card-foreground">
-                Why Choose dISO Registry?
+                Why Choose <ColorizedDisoRegistry />?
               </h2>
               <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
                 Experience the future of certificate verification with blockchain-powered security and transparency.
@@ -370,7 +346,7 @@ export default function Home() {
       <footer className="bg-white border-t">
         <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
           <div className="text-center text-gray-500">
-            <p>&copy; 2025 dISO Registry. All rights reserved.</p>
+            <p>&copy; 2025 <ColorizedDisoRegistry />. All rights reserved.</p>
             <p className="mt-2 text-sm">Powered by Etherlink blockchain technology</p>
           </div>
         </div>

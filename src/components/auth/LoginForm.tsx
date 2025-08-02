@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { ColorizedDisoRegistry } from '@/components/ui/ColorizedDiso';
 
 export default function LoginForm() {
   const [formData, setFormData] = useState({
@@ -64,16 +65,11 @@ export default function LoginForm() {
       <div className="max-w-md w-full">
         <div className="bg-card rounded-lg border shadow-sm p-8">
           <div className="text-center mb-8">
-            <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-purple-600">
-              <svg className="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
             <h2 className="mt-6 text-center text-3xl font-extrabold text-card-foreground">
               Sign in to your account
             </h2>
             <p className="mt-2 text-center text-sm text-muted-foreground">
-              dISO Registry - Certification Body Portal
+<ColorizedDisoRegistry /> - Certification Body Portal
             </p>
           </div>
           

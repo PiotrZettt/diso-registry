@@ -172,7 +172,7 @@ export default function VerifyPage() {
             </Link>
             <nav className="flex space-x-8">
               <Link href={user ? "/dashboard" : "/login"}>
-                <Button variant="outline">Certification Body</Button>
+                <Button variant="outline" className="animate-pulse-outline">Certification Body</Button>
               </Link>
             </nav>
           </div>

@@ -3,6 +3,7 @@
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
 
 interface Certificate {
   id: string;
@@ -118,12 +119,12 @@ export default function CertificatesPage() {
               </button>
               <h1 className="text-xl font-semibold text-gray-900">Certificates</h1>
             </div>
-            <button
+            <Button
+              variant="outline"
               onClick={() => router.push('/certificates/issue')}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               Issue New Certificate
-            </button>
+            </Button>
           </div>
         </div>
       </header>
@@ -144,12 +145,12 @@ export default function CertificatesPage() {
               <h3 className="mt-2 text-sm font-medium text-gray-900">No certificates</h3>
               <p className="mt-1 text-sm text-gray-500">Get started by issuing your first certificate.</p>
               <div className="mt-6">
-                <button
+                <Button
+                  variant="outline"
                   onClick={() => router.push('/certificates/issue')}
-                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
                   Issue New Certificate
-                </button>
+                </Button>
               </div>
             </div>
           ) : (

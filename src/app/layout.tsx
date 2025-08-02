@@ -17,9 +17,9 @@ export const metadata: Metadata = {
   title: "dISO Registry",
   description: "Decentralized ISO Certification Registry on Etherlink",
   icons: {
-    icon: '/favicon.svg',
-    shortcut: '/favicon.svg',
-    apple: '/favicon.svg',
+    icon: '/diso-logo-simple.svg',
+    shortcut: '/diso-logo-simple.svg',
+    apple: '/diso-logo-simple.svg',
   },
 };
 
