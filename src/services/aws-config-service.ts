@@ -44,17 +44,16 @@ class AWSConfigService {
       return this.credentials;
     }
 
-    // 1. If in Amplify/Lambda, try hardcoded credentials first (since env vars aren't available at runtime)
+    // 1. If in Amplify/Lambda, try environment variables first
     if (this.isAmplifyEnvironment()) {
       console.log('🚀 Amplify/Lambda environment detected');
       
-      // Try hardcoded credentials from the app configuration we saw earlier
-      // These were available in the Amplify console but not at runtime
-      const amplifyAccessKey = 'AKIA2IHFXQ2HGYFOMAWP';
-      const amplifySecretKey = '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';
+      // Try DEFISO prefixed environment variables first
+      const amplifyAccessKey = process.env.DEFISO_ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY_ID;
+      const amplifySecretKey = process.env.DEFISO_SECRET_ACCESS_KEY || process.env.AWS_SECRET_ACCESS_KEY;
       
       if (amplifyAccessKey && amplifySecretKey) {
-        console.log('✅ Using hardcoded Amplify credentials');
+        console.log('✅ Using Amplify environment variables for credentials');
         this.credentials = {
           accessKeyId: amplifyAccessKey,
           secretAccessKey: amplifySecretKey,
@@ -63,7 +62,7 @@ class AWSConfigService {
         return this.credentials;
       }
       
-      console.log('⚠️ No hardcoded credentials, falling back to IAM role');
+      console.log('⚠️ No environment credentials found, falling back to IAM role');
       return null; // Let AWS SDK use IAM role
     }
 
