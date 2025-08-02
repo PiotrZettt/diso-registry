@@ -21,24 +21,11 @@ import { Tenant, TenantUser, TenantInvitation } from '@/types/tenant';
 import { ISOCertificate } from '@/types/certificate';
 import { generateTenantSlug, generateInvitationToken } from '@/lib/utils/tenant-utils';
 
-// Configure DynamoDB client with explicit credentials for production
-const clientConfig: any = {
+
+// Configure DynamoDB client for Lambda/IAM role (no explicit credentials)
+const client = new DynamoDBClient({
   region: process.env.AWS_REGION || process.env.DEFISO_AWS_REGION || 'eu-west-2',
-};
-
-// Add explicit credentials if provided (for Amplify/production)
-// Use custom variable names since AWS_ prefix is reserved in Amplify
-const accessKeyId = process.env.AWS_ACCESS_KEY_ID || process.env.DEFISO_ACCESS_KEY_ID;
-const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY || process.env.DEFISO_SECRET_ACCESS_KEY;
-
-if (accessKeyId && secretAccessKey) {
-  clientConfig.credentials = {
-    accessKeyId,
-    secretAccessKey,
-  };
-}
-
-const client = new DynamoDBClient(clientConfig);
+});
 const docClient = DynamoDBDocumentClient.from(client);
 
 const TABLE_PREFIX = process.env.DYNAMODB_TABLE_PREFIX || 'defiso';
