@@ -2,12 +2,26 @@
 
 > **Solving Real-World Certification Trust Issues with Blockchain Technology**
 
-A revolutionary decentralized platform built on **Etherlink blockchain** that addresses the critical problem of ISO certificate verification and authenticity in global commerce. Our platform provides instant, immutable, and transparent certificate management for certification bodies worldwide.
+A decentralized platform built on **Etherlink blockchain** that addresses the critical problem of ISO certificate verification and authenticity in global commerce. Our platform provides instant, immutable, and transparent certificate management for certification bodies worldwide.
 
 ## The Real-World Problem We Solve
 
+### Fake ISO certificates - the scale of the problem (estimated)
+**The International Accreditation Forum (IAF)** and other industry organizations indicate that:
+Several to a dozen percent of certificates worldwide may be invalid, **fake, or issued by non-accredited bodies.**
+- **In Asian countries**, and even parts of Central and Eastern Europe, this issue is relatively common.
+- **Some industry estimates suggest** that up to 10–20% of ISO certificates in circulation may be unreliable (though not necessarily forged — some may appear legitimate but come from so-called "certificate factories").
+
+### Types of fraud:
+
+- **Fake documents** – certificates "issued" by non-existent entities.
+- **Certificates without audits** – companies purchase an "ISO certificate" without meeting any actual requirements.
+- **Non-accredited certification bodies** – formally issue certificates but are not recognized by the IAF (lack of independent accreditation).
+- **Counterfeit** ISO or IAF logos on documents.
+
 ### Certificate Fraud & Verification Challenges
-- **$50+ billion** lost annually to fake certifications globally
+#### The International Accreditation Forum (IAF) and other industry organizations indicate that:
+- **Several to a dozen percent** of certificates worldwide may be **invalid, fake, or issued by non-accredited bodies.**
 - **Hours or days** required to verify certificate authenticity through traditional channels
 - **No centralized, trustworthy database** for real-time certificate verification
 - **High costs** for manual verification processes
@@ -56,7 +70,6 @@ We chose **Etherlink** for several critical advantages that make real-world cert
 
 ### For Certificate Holders
 - **Instant Sharing** - Share verifiable certificates with stakeholders
-- **QR Code Generation** - Easy mobile verification
 - **Tamper-Proof Evidence** - Blockchain-backed proof of authenticity
 - **Document Storage** - IPFS integration for secure document management
 
@@ -219,7 +232,6 @@ This service handles all blockchain interactions:
 - **Contract Deployment**: Automatic connection to Etherlink smart contract
 - **Certificate Operations**: Issue, update, and verify certificates
 - **Gas Management**: Optimized transaction handling for cost efficiency
-- **Error Handling**: Robust error recovery and retry mechanisms
 
 #### **Key Integration Files:**
 
@@ -318,19 +330,9 @@ The platform includes comprehensive logging for all blockchain operations:
 - **Explorer**: View transactions on [Etherlink Explorer](https://testnet.explorer.etherlink.com)
 - **RPC Endpoint**: `https://node.ghostnet.etherlink.com`
 
-## Contributing
-
-We welcome contributions to improve the d'ISO Registry platform! 
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License.
 
 *Making ISO certificate verification instant, trustworthy, and accessible to everyone, everywhere.*
 
