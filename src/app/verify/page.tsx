@@ -234,8 +234,7 @@ function VerifyPageContent() {
                 <button
                   onClick={handleVerify}
                   disabled={loading}
-                  className="px-6 py-2 text-white rounded-md hover:opacity-90 disabled:opacity-50"
-                  style={{ backgroundColor: primaryColor }}
+                  className="px-6 py-2 text-green-600 border border-green-600 rounded-md hover:bg-green-50 hover:text-green-700 hover:border-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {loading ? 'Verifying...' : 'Verify'}
                 </button>
@@ -507,7 +506,7 @@ function VerifyPageContent() {
                             href={`https://testnet.explorer.etherlink.com/tx/${certificate.blockchain.etherlinkTransactionHash}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium"
+                            className="inline-flex items-center px-3 py-1 text-sm text-green-600 border border-green-600 rounded-md hover:bg-green-50 hover:text-green-700 hover:border-green-700 font-medium transition-colors"
                           >
                             View on Explorer
                             <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -534,7 +533,7 @@ function VerifyPageContent() {
                             href={`https://gateway.pinata.cloud/ipfs/${certificate.blockchain.ipfsHash}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center text-sm text-purple-600 hover:text-purple-800 font-medium"
+                            className="inline-flex items-center px-3 py-1 text-sm text-green-600 border border-green-600 rounded-md hover:bg-green-50 hover:text-green-700 hover:border-green-700 font-medium transition-colors"
                           >
                             View Document
                             <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -561,7 +560,7 @@ function VerifyPageContent() {
                             href={`https://ghostnet.tzkt.io/${certificate.blockchain.tezosTransactionHash}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center text-sm text-orange-600 hover:text-orange-800 font-medium"
+                            className="inline-flex items-center px-3 py-1 text-sm text-green-600 border border-green-600 rounded-md hover:bg-green-50 hover:text-green-700 hover:border-green-700 font-medium transition-colors"
                           >
                             View on Tzkt
                             <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -397,6 +397,7 @@ export class PublicCertificateService {
     query: PublicCertificateSearchQuery, 
     limit: number
   ): Promise<PublicCertificateSearchResult> {
+    const { docClient } = await initializeDynamoDBClient();
     const orgKey = organizationName.toLowerCase().replace(/\s+/g, '-');
     
     const command = new QueryCommand({
@@ -428,6 +429,7 @@ export class PublicCertificateService {
     query: PublicCertificateSearchQuery,
     limit: number
   ): Promise<PublicCertificateSearchResult> {
+    const { docClient } = await initializeDynamoDBClient();
     const command = new QueryCommand({
       TableName: CERTIFICATES_TABLE,
       IndexName: 'GSI2',

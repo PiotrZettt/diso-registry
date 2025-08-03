@@ -200,11 +200,11 @@ export default function Home() {
                           <div className="ml-4 flex-shrink-0">
                             <Link
                               href={`/verify?id=${cert.certificateNumber}`}
-                              className="inline-flex items-center px-3 py-1 text-sm font-medium text-blue-600 hover:text-blue-800"
+                              className="inline-flex items-center px-4 py-2 text-sm font-medium text-green-600 border border-green-600 rounded-md hover:bg-green-50 hover:text-green-700 hover:border-green-700 transition-colors"
                             >
                               Verify
                               <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                               </svg>
                             </Link>
                           </div>
