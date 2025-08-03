@@ -11,9 +11,11 @@ export const ColorizedDiso: React.FC<ColorizedDisoProps> = ({
 }) => {
   return (
     <span className={`${className}`}>
-      d<span style={{ color: '#AB2AD5' }}>I</span>
-      <span style={{ color: '#E8932B' }}>S</span>
-      <span style={{ color: '#3DDD67' }}>O</span>
+      <span className="text-green-600">d</span>
+      <span className="text-black">'</span>
+      <span className="text-blue-800">I</span>
+      <span className="text-blue-800">S</span>
+      <span className="text-blue-800">O</span>
     </span>
   );
 };
@@ -29,7 +31,7 @@ export const ColorizedDisoRegistry: React.FC<ColorizedDisoRegistryProps> = ({
 }) => {
   return (
     <span className={`${className}`}>
-      <ColorizedDiso size={size} /> Registry
+      <ColorizedDiso size={size} /> <span className="text-gray-700">Registry</span>
     </span>
   );
 };

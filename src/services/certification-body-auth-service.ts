@@ -168,7 +168,7 @@ export class CertificationBodyAuthService {
         contactPerson: data.contactPerson,
         address: data.address,
         accreditation: data.accreditation,
-        status: isDevEnvironment ? 'active' : 'pending', // Auto-approve in development
+        status: 'active', // Always set new users as active
         blockchain: {
           walletAddress: undefined,
           tezosContractAddress: undefined,
@@ -511,7 +511,7 @@ export class CertificationBodyAuthService {
           scope: ['ISO 9001'],
           validUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year from now
         },
-        status: isDevEnvironment ? 'active' : 'pending', // Auto-approve in development
+        status: 'active', // Always set new users as active
         blockchain: {
           walletAddress: undefined,
           tezosContractAddress: undefined,

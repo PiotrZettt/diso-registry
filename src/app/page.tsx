@@ -96,7 +96,7 @@ export default function Home() {
             <Logo variant="simple" size="large" />
           </div>
                     <h1 className="text-4xl font-bold text-card-foreground sm:text-5xl md:text-6xl">
-            dISO Registry v1.1
+            <span className="text-green-600">d</span><span className="text-black">'</span><span className="text-blue-800">ISO</span> <span className="text-gray-700">Registry</span>
           </h1>
           <p className="mt-3 max-w-md mx-auto text-base text-muted-foreground sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
             Search and verify ISO certificates on the Etherlink blockchain. Secure, transparent, and trustworthy certification verification.

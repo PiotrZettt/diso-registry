@@ -47,7 +47,7 @@ export const Logo: React.FC<LogoProps> = ({
         <div className={`${sizeClasses[size]} mr-3`}>
           <Image 
             src="/diso-logo-simple.svg" 
-            alt="dISO Registry Logo"
+            alt="d'ISO Registry Logo"
             width={sizePixels[size]}
             height={sizePixels[size]}
             className="w-full h-full"

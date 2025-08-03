@@ -109,7 +109,7 @@ export class BlockchainService {
       try {
         console.log('   🔧 Registering certification body...');
         const registerTx = await this.etherlinkContract.registerCertificationBody(
-          "dISO Registry",
+          "d'ISO Registry",
           "DEFISO-001", 
           "Global"
         );

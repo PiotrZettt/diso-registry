@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "dISO Registry",
+  title: "d'ISO Registry",
   description: "Decentralized ISO Certification Registry on Etherlink",
   icons: {
     icon: '/diso-logo-simple.svg',

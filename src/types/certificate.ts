@@ -1,4 +1,4 @@
-// ISO Certificate type definitions for dISO Registry
+// ISO Certificate type definitions for d'ISO Registry
 
 export interface ISOCertificate {
   id: string;

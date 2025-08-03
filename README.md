@@ -1,4 +1,4 @@
-# <span style="color: #000000;">d</span><span style="color: #E8932B;">I</span><span style="color: #3DDD67;">S</span><span style="color: #AB2AD5;">O</span> Registry - Decentralized ISO Certification Platform
+# <span style="color: #10b981;">d</span><span style="color: #000000;">'</span><span style="color: #38bdf8;">ISO</span> Registry - Decentralized ISO Certification Platform
 
 > **Solving Real-World Certification Trust Issues with Blockchain Technology**
 
@@ -13,7 +13,7 @@ A revolutionary decentralized platform built on **Etherlink blockchain** that ad
 - **High costs** for manual verification processes
 - **Lack of transparency** in certification lifecycle management
 
-### How dISO Registry Solves This
+### How d'ISO Registry Solves This
 **Instant Verification** - Verify any ISO certificate in seconds, not days  
 **Immutable Records** - Blockchain-backed certificates that cannot be forged  
 **Global Accessibility** - 24/7 worldwide access to certificate verification  
@@ -143,7 +143,7 @@ Open [http://localhost:3000](http://localhost:3000) to access the application.
 
 ### For Public Verification
 
-1. **Visit Homepage** - Go to the main dISO Registry page
+1. **Visit Homepage** - Go to the main d'ISO Registry page
 2. **Enter Certificate Details** - Input certificate number or verification code
 3. **Instant Results** - Get immediate blockchain-verified results
 4. **View Details** - Access complete certificate information and blockchain proof
@@ -320,7 +320,7 @@ The platform includes comprehensive logging for all blockchain operations:
 
 ## Contributing
 
-We welcome contributions to improve the dISO Registry platform! 
+We welcome contributions to improve the d'ISO Registry platform! 
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
