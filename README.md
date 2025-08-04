@@ -308,20 +308,6 @@ const config: BlockchainConfig = {
 - Verify blockchain connectivity
 - Test contract interaction
 
-#### **Real-time Monitoring**
-The platform includes comprehensive logging for all blockchain operations:
-- Transaction hashes for complete audit trails
-- Gas usage tracking for cost optimization
-- Block confirmation monitoring
-- Error logging with retry mechanisms
-
-### Why This Implementation Works
-
-1. **Immediate Finality**: Etherlink's fast confirmation times mean certificates are instantly verifiable
-2. **Cost Efficiency**: Low gas fees make certificate operations affordable at scale
-3. **Data Integrity**: Dual storage (blockchain + IPFS) ensures both metadata and documents are tamper-proof
-4. **Scalability**: Smart contract architecture supports thousands of certificates without performance degradation
-5. **Transparency**: All operations are publicly verifiable on the blockchain explorer
 
 ### Deployed Contract Information
 
